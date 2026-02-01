@@ -70,7 +70,7 @@ To deploy the container images from DockerHub, do the following:
 
    ./omnia.sh --install
 
-   If there are issues pulling images from Docker Hub, manually pull the image using Podman::
+   If there are issues pulling images from Docker Hub, log in to your Docker Hub account using Podman and manually pull the image::
        
        podman pull dellhpcomniaaisolution/omnia_auth:1.0  
 
@@ -100,13 +100,13 @@ To deploy the container images from any Omnia branch, available at `Omnia Artifa
 
     .. code-block:: bash
 
-      ./build_images.sh omnia_branch=main
+      ./build_images.sh oim omnia_branch=main
 
     To build from a tag:
 
     .. code-block:: bash
 
-      ./build_images.sh omnia_branch=v2.0.0.0
+      ./build_images.sh oim omnia_branch=v2.0.0.0
 
   * For detailed build instructions, refer to the `Omnia Artifacts README <https://github.com/dell/omnia-artifactory/blob/omnia-container/README.md>`_.
 
