@@ -132,6 +132,10 @@ Lightweight Directory Access Protocol (LDAP)
 Lightweight Distributed Metric Service (LDMS)
 ---------------------------------------------
 
+* Ensure that EPEL and AppStream repositories are configured and the python3-devel and python3-Cython packages are installed. To install the packages, run the following command::
+
+   sudo dnf install -y python3-devel python3-Cython   
+
 * The LDMS RPM must be available in the user repository, and the ``ldms.json`` file should be updated accordingly. 
   If the LDMS RPM is not available, refer to  `Building LDMS PRODUCER RPM Package <https://github.com/dell/omnia-artifactory?tab=readme-ov-file#building-ldms-producer-rpm-package>`_ for instructions on building LDMS RPMs.
 * If the LDMS RPMS are already available, update the value (<hosted LDMS repository url>) in the URL of the ``user_repo_url_x86_64`` or ``user_repo_url_aarch64`` parameter in ``/opt/omnia/input/project_default/local_repo_config.yml``.
@@ -154,11 +158,11 @@ Slurm
   
 * If the repository is hosted, use the URL created in the ``local_repo_config.yml`` file.
 
-  For x86_64::
+  user_repo_url_x86_64::
     
    - { url: "<hosted slurm repository url>", gpgkey: "", sslcacert: "", sslclientkey: "", sslclientcert: "",  name: "x86_64_slurm_custom" }
 
-  For aarch64::
+  user_repo_url_aarch64::
     
    - { url: "<hosted slurm repository url>", gpgkey: "", sslcacert: "", sslclientkey: "", sslclientcert: "",  name: "aarch64_slurm_custom" }
 
