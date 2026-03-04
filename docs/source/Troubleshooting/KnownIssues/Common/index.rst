@@ -10,5 +10,6 @@ This topic highlights the common known issues related to:
     LocalRepo
     Provision
     Kubernetes
+    Slurm
     Storage
     Telemetry
