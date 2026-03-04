@@ -21,12 +21,12 @@ On some GPU compute nodes, the NVIDIA driver may intermittently behave slowly du
 
 Expected output should show ``Persistence Mode`` as ``Enabled``:
 
-.. image:: ../../images/troubleshooting_nvidia_persistence_mode.png
+.. image:: ../../../images/troubleshooting_nvidia_persistence_mode.png
 
 
 ⦾ **Why do GPU jobs fail to submit when requesting GPU resources using --gres=gpu:<count>? The submission fails with:
 
-.. image:: ../../images/troubleshoot_gpu_gres1.png
+.. image:: ../../../images/troubleshoot_gpu_gres1.png
 
 **Potential Cause**
 
