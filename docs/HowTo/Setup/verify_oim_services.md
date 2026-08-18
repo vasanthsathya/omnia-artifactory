@@ -49,10 +49,7 @@ are not.
     omnia.target
     ● ├─minio.service
     ● ├─omnia_auth.service
-    ● ├─omnia_build_stream.service
     ● ├─omnia_core.service
-    ● ├─omnia_postgres.service
-    ● ├─playbook_watcher.service
     ● ├─pulp.service
     ● ├─registry.service
     ● ├─network-online.target
@@ -63,7 +60,8 @@ are not.
     ●   ├─bss-init.service
     ●   ├─bss.service
     ●   ├─cloud-init-server.service
-    ●   ├─coresmd.service
+    ●   ├─coresmd-coredhcp.service
+    ●   ├─coresmd-coredns.service
     ●   ├─haproxy.service
     ●   ├─hydra-gen-jwks.service
     ●   ├─hydra-migrate.service
@@ -72,8 +70,11 @@ are not.
     ●   ├─opaal.service
     ●   ├─openchami-cert-trust.service
     ●   ├─postgres.service
+    ●   ├─smd-init.service
     ●   ├─smd.service
-    ●   └─step-ca.service
+    ●   ├─step-ca.service
+    ●   └─network-online.target
+    ●     └─NetworkManager-wait-online.service
     ```
 
     The following service status indicators are displayed on the live cluster:
@@ -86,14 +87,10 @@ are not.
 
         The `omnia_auth.service` runs only when OpenLDAP is specified in `/opt/omnia/input/project_default/software_config.json`.
 
-    !!! note
-
-        The `omnia_build_stream.service`, `omnia_postgres.service`, and `playbook_watcher.service` run only when BuildStreaM is enabled in `/opt/omnia/input/project_default/build_stream_config.yml`.
-
 3. **Check each top-level service individually**:
 
     ```bash title="Run on: OIM host"
-    for svc in minio omnia_auth omnia_build_stream omnia_core omnia_postgres playbook_watcher pulp registry; do
+    for svc in minio omnia_auth omnia_core pulp registry; do
       echo "=== $svc ==="
       systemctl is-active ${svc}.service
     done
@@ -102,7 +99,7 @@ are not.
 4. **Check OpenCHAMI sub-services**:
 
     ```bash title="Run on: OIM host"
-    for svc in acme-deploy acme-register bss-init bss cloud-init-server coresmd haproxy hydra-gen-jwks hydra-migrate hydra opaal-idp opaal openchami-cert-trust postgres smd step-ca; do
+    for svc in acme-deploy acme-register bss-init bss cloud-init-server coresmd-coredhcp coresmd-coredns haproxy hydra-gen-jwks hydra-migrate hydra opaal-idp opaal openchami-cert-trust postgres smd-init smd step-ca; do
       echo "=== $svc ==="
       systemctl is-active ${svc}.service
     done
@@ -200,14 +197,11 @@ echo "pulp:                $(systemctl is-active pulp.service)"
 echo "minio:               $(systemctl is-active minio.service)"
 echo "registry:            $(systemctl is-active registry.service)"
 echo "omnia_auth:          $(systemctl is-active omnia_auth.service)"
-echo "omnia_build_stream:  $(systemctl is-active omnia_build_stream.service)"
-echo "omnia_postgres:      $(systemctl is-active omnia_postgres.service)"
-echo "playbook_watcher:    $(systemctl is-active playbook_watcher.service)"
 ```
 
 !!! note
 
-    `omnia_auth`, `omnia_build_stream`, `omnia_postgres`, and `playbook_watcher` report `inactive` when OpenLDAP or BuildStreaM are not enabled -- this does not indicate a failure.
+    `omnia_auth` reports `inactive` when OpenLDAP is not enabled -- this does not indicate a failure.
 
 ## Next Steps
 

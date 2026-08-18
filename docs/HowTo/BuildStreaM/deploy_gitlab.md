@@ -119,7 +119,7 @@ After the installation completes, verify the following:
 
 !!! note
 
-    The `omnia_build_stream.service`, `omnia_postgres.service`, and `playbook_watcher.service` run only when BuildStreaM is enabled in `/opt/omnia/input/project_default/build_stream_config.yml`.
+    BuildStreaM services run only when BuildStreaM is enabled in `/opt/omnia/input/project_default/build_stream_config.yml`.
 
 ## Next Steps
 

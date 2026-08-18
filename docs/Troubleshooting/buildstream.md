@@ -17,7 +17,7 @@ Issues related to BuildStreaM pipeline execution, GitLab integration, catalog va
 
     1. Ensure the GitLab target IP and BuildStreaM API server are in the same subnet.
 
-    2. Verify that the `omnia_build_stream` container and the `omnia_postgres` and `playbook_watcher` services are running on the OIM node:
+    2. Verify that the BuildStreaM containers and services are running on the OIM node:
 
         ```bash title="Run on: OIM host"
         systemctl status omnia_build_stream.service

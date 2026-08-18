@@ -167,25 +167,7 @@ When running `prepare_oim.yml`, you are prompted for S3 credentials. Enter the S
     systemctl status omnia_core.service
     ```
 
-2. Check the status of the PostgreSQL database container (if BuildStreaM is enabled):
-
-    ```bash title="Run on: OIM host"
-    systemctl status omnia_postgres.service
-    ```
-
-3. Check the status of the BuildStreaM API container (if BuildStreaM is enabled):
-
-    ```bash title="Run on: OIM host"
-    systemctl status omnia_build_stream.service
-    ```
-
-4. Check the status of the playbook watcher service (if BuildStreaM is enabled):
-
-    ```bash title="Run on: OIM host"
-    systemctl status playbook_watcher.service
-    ```
-
-5. View the complete list of dependent services for the Omnia target:
+2. View the complete list of dependent services for the Omnia target:
 
     ```bash title="Run on: OIM host"
     systemctl list-dependencies omnia.target
@@ -197,10 +179,7 @@ When running `prepare_oim.yml`, you are prompted for S3 credentials. Enter the S
     omnia.target
     ● ├─minio.service
     ● ├─omnia_auth.service
-    ● ├─omnia_build_stream.service
     ● ├─omnia_core.service
-    ● ├─omnia_postgres.service
-    ● ├─playbook_watcher.service
     ● ├─pulp.service
     ● ├─registry.service
     ● ├─network-online.target
@@ -211,7 +190,8 @@ When running `prepare_oim.yml`, you are prompted for S3 credentials. Enter the S
     ●   ├─bss-init.service
     ●   ├─bss.service
     ●   ├─cloud-init-server.service
-    ●   ├─coresmd.service
+    ●   ├─coresmd-coredhcp.service
+    ●   ├─coresmd-coredns.service
     ●   ├─haproxy.service
     ●   ├─hydra-gen-jwks.service
     ●   ├─hydra-migrate.service
@@ -220,8 +200,11 @@ When running `prepare_oim.yml`, you are prompted for S3 credentials. Enter the S
     ●   ├─opaal.service
     ●   ├─openchami-cert-trust.service
     ●   ├─postgres.service
+    ●   ├─smd-init.service
     ●   ├─smd.service
-    ●   └─step-ca.service
+    ●   ├─step-ca.service
+    ●   └─network-online.target
+    ●     └─NetworkManager-wait-online.service
     ```
 
     - A **green circle** indicates the service is running.
@@ -231,10 +214,6 @@ When running `prepare_oim.yml`, you are prompted for S3 credentials. Enter the S
 !!! note
 
     The `omnia_auth.service` runs only when OpenLDAP is specified in `/opt/omnia/input/project_default/software_config.json`.
-
-!!! note
-
-    The `omnia_build_stream.service`, `omnia_postgres.service`, and `playbook_watcher.service` run only when BuildStreaM is enabled in `/opt/omnia/input/project_default/build_stream_config.yml`.
 
 ## Next Steps
 
