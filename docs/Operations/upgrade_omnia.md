@@ -76,6 +76,21 @@ Before starting the upgrade, ensure the following prerequisites are met:
    configured with a minimum of 64 NFS daemon threads and that the OIM host has
    low-latency connectivity to the NFS server. For details, see
    [Upgrade Gets Stuck at omnia.sh --upgrade with External NFS](../Troubleshooting/known_limitations.md#upgrade-gets-stuck-at-omniash-upgrade-with-external-nfs).
+9. **Slurm clusters only**: Verify the current Slurm version on Slurm nodes to
+   ensure compatibility with the upgrade:
+
+    ```bash title="Run on: slurm_control_node"
+    slurmctld --version
+    # Expected output: slurm 25.05.2
+    ```
+
+    ```bash title="Run on: slurm_node"
+    slurmd --version
+    # Expected output: slurm 25.05.2
+    ```
+
+    If the Slurm version is not 25.05.2, apply the Slurm version pinning
+    workaround before proceeding with the upgrade.
 
 ### Build the Omnia 2.2.0.0 Core Container Image
 
@@ -498,6 +513,15 @@ release.
 
 !!! warning
 
+    - **Compatibility**: Slurm upgrade may face issues if the cluster is not on
+      Slurm version 25.05.2. Ensure the version verification in the
+      [Prerequisites](#prerequisites) section passes before proceeding with
+      the upgrade.
+    - **Version Pinning**: EPEL repositories now ship Slurm 26.x packages,
+      which conflicts with the Slurm 25.05.2 packages expected by Omnia. If
+      the version check in prerequisites fails, apply the Slurm version pinning
+      workaround. For detailed instructions, see the
+      [Slurm Version Pinning Workaround for Omnia v2.1.0.0](https://omnia.readthedocs.io/en/v2.1.0.0/Troubleshooting/slurm.html#slurm-version-pinning-workaround).
     - All Slurm compute, control, and login nodes are rebooted simultaneously
       during the upgrade process. Ensure that no critical or long-running jobs
       are active before starting the upgrade.
