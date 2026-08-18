@@ -302,7 +302,6 @@ After `prepare_oim.yml` completes, verify the OIM services on the
     ```text title="Expected output"
     omnia.target
     ● ├─minio.service
-    ● ├─omnia_auth.service
     ● ├─omnia_core.service
     ● ├─pulp.service
     ● ├─registry.service
@@ -326,7 +325,9 @@ After `prepare_oim.yml` completes, verify the OIM services on the
     ●   ├─postgres.service
     ●   ├─smd-init.service
     ●   ├─smd.service
-    ●   └─step-ca.service
+    ●   ├─step-ca.service
+    ●   └─network-online.target
+    ●     └─NetworkManager-wait-online.service
     ```
 
 3. **Verify all containers are running**:
