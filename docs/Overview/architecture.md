@@ -4,6 +4,20 @@
 
 Omnia v2.3 introduces a domain-based architecture that organizes functionality into independent, reusable domains with clear contracts and workflows. This architecture improves maintainability, scalability, and modularity of the infrastructure management platform.
 
+## What Are Domains?
+
+Think of domains as specialized teams that work independently but can collaborate when needed. Each domain handles a specific aspect of cluster deployment:
+
+- **repo_manager** - Manages software repositories (like a package distribution center)
+- **image_build_manager** - Builds operating system images (like an image factory)
+- **discovery** - Discovers and inventories hardware (like an asset management system)
+- **orchestrator** - Provisions and configures cluster nodes (like a deployment team)
+- **telemetry** - Collects monitoring data (like a monitoring center)
+- **build_stream** - Automates CI/CD workflows (like an automation pipeline)
+- **utils** - Provides helper utilities (like a toolbox)
+
+Domains communicate through standardized contracts, enabling them to work together seamlessly while remaining independent. This means you can deploy exactly what you need - a single domain, several domains, or all domains together.
+
 ## Architecture Overview
 
 The domain-based architecture centers around the Omnia Infrastructure Manager (OIM) as the central control plane, with functionality organized into seven distinct domains:
@@ -91,7 +105,7 @@ The orchestrator domain handles workload orchestration, service deployment, and 
 **Responsibilities**:
 - Deploy Slurm job scheduler
 - Deploy Kubernetes services
-- Configure networking (InfiniBand, DNS)
+- Configure networking (InfiniBand, Cluster DNS)
 - Configure storage (NFS, PowerScale)
 - Configure authentication (LDAP)
 - Deploy OpenCHAMI provisioning stack
@@ -107,7 +121,6 @@ The orchestrator domain handles workload orchestration, service deployment, and 
 The telemetry domain handles metrics collection, monitoring, and data aggregation.
 
 **Responsibilities**:
-- Collect iDRAC hardware telemetry
 - Collect LDMS node-level metrics
 - Collect storage metrics (PowerScale, VAST)
 - Collect fabric metrics (UFM)
@@ -222,7 +235,7 @@ When deploying a full cluster end-to-end, domains are executed in this order:
 | 3 | **image_build_manager** | Build OS images using mirrored repos, upload to S3 | Yes |
 | 4 | **discovery** | Discover servers via OME, generate PXE mapping | Optional |
 | 5 | **orchestrator** | PXE boot nodes, deploy K8s/Slurm, configure services | Yes |
-| 6 | **telemetry** | Enable iDRAC/UFM telemetry collection | Optional |
+| 6 | **telemetry** | Enable UFM telemetry collection | Optional |
 
 **BuildStream** orchestrates this sequence automatically via GitLab CI/CD pipeline, but each domain can also be run manually via `omnia.sh`.
 

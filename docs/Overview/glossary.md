@@ -8,6 +8,12 @@ page that provides a full explanation.
 **Apptainer**
 :   Formerly known as Singularity. A container runtime designed for HPC environments that allows users to run containers without root privileges. Supported on Slurm compute nodes in Omnia 2.1+.
 
+**Catalog**
+:   A YAML manifest that defines a deployment workflow in BuildStreaM. The catalog specifies which domains to execute, in what order, and with what configuration. Administrators can create different catalogs for different deployment scenarios (e.g., Slurm-only, full deployment, BuildStreaM automation). See [BuildStreaM](build_stream/index.md).
+
+**Domain**
+:   An independent, reusable component in Omnia's domain-based architecture. Each domain handles a specific aspect of cluster deployment (e.g., repo_manager for software repositories, orchestrator for node provisioning). Domains communicate with each other through standardized YAML contracts, enabling flexible deployment scenarios. The 7 domains are: repo_manager, image_build_manager, discovery, orchestrator, telemetry, build_stream, and utils. See [Domain-Based Architecture](../index.md#domain-based-architecture).
+
 **BMC**
 :   Baseboard Management Controller. A dedicated microcontroller embedded in server motherboards that provides out-of-band management capabilities (power control, hardware monitoring, remote console) independent of the host operating system. On Dell PowerEdge servers, the BMC is implemented as **iDRAC**.
 
@@ -139,6 +145,12 @@ page that provides a full explanation.
 
 **vmagent**
 :   VictoriaMetrics agent that collects metrics from various sources and pushes them to VictoriaMetrics. Omnia deploys vmagent for metrics collection from cluster components.
+
+**Domain Contract**
+:   A YAML file that defines the interface and communication protocol between domains. Domain contracts specify what inputs a domain requires, what outputs it produces, and how it integrates with other domains. Contracts enable domains to work independently while maintaining clear integration points. See [Domain Contracts](../Reference/domain_contracts/index.md).
+
+**omnia.sh**
+:   The unified CLI interface for Omnia v2.3 that replaces the container-based model from v2.2. The `omnia.sh` script provides commands to execute individual domains or complete deployment workflows, automatically handling domain dependencies and execution order. See [Get Started](../GetStarted/index.md).
 
 
 

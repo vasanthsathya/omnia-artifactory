@@ -1,7 +1,11 @@
 
 # Cluster DNS
 
-Cluster DNS provides dynamic hostname resolution for Omnia-managed cluster nodes using CoreDNS-based DNS services instead of static `/etc/hosts` file management. This feature eliminates O(N) SSH-based hosts file updates during provisioning and provides automatic hostname resolution for newly inventoried nodes without requiring playbook re-runs.
+Cluster DNS provides dynamic hostname resolution for Omnia-managed cluster nodes using CoreDNS-based DNS services instead of static `/etc/hosts` file management. This feature is part of the **orchestrator domain** and eliminates O(N) SSH-based hosts file updates during provisioning while providing automatic hostname resolution for newly inventoried nodes without requiring playbook re-runs.
+
+!!! note
+
+    Cluster DNS configuration and deployment is managed by the orchestrator domain. For configuration details, see [Configure Cluster DNS](../HowTo/Networking/configure_cluster_dns.md).
 
 !!! important "Centralized DNS Upgrade"
 

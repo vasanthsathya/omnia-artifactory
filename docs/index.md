@@ -72,6 +72,34 @@ The project is hosted on [GitHub](https://github.com/dell/omnia), where you can:
 
 </div>
 
+## Domain-Based Architecture
+
+Omnia v2.3 is built on a **domain-based architecture** that organizes the system into 7 independent, reusable domains. Each domain handles a specific aspect of cluster deployment and management, communicating with other domains through standardized YAML contracts.
+
+### The 7 Domains
+
+| Domain | Purpose | When Used |
+|--------|---------|-----------|
+| **repo_manager** | Manages local and external software repositories | All deployments requiring custom software packages |
+| **image_build_manager** | Builds OS images for cluster nodes | All deployments requiring custom OS images |
+| **discovery** | Discovers and inventories hardware resources | All deployments requiring hardware inventory |
+| **orchestrator** | Provisions and configures cluster nodes | All deployments requiring node provisioning |
+| **telemetry** | Collects and monitors system metrics | All deployments requiring monitoring and observability |
+| **build_stream** | Automates CI/CD workflows via GitLab pipelines | Build Stream deployments requiring automation |
+| **utils** | Provides utility functions and common operations | All deployments (supporting domain) |
+
+### How Domains Work Together
+
+Domains can be deployed independently or in combination, enabling flexible deployment scenarios:
+
+- **Full Deployment**: All domains work together for complete cluster setup
+- **Domain-Specific**: Individual domains can be used for targeted operations
+- **Mixed Environments**: External systems can integrate with specific domains via contracts
+
+The `omnia.sh` CLI provides a unified interface to execute domains in the correct order based on their dependencies. For detailed technical specifications, see the [domain contracts](Reference/domain_contracts/index.md).
+
+!!! tip
+    Think of domains as specialized teams that can work independently or collaborate through standardized contracts. This architecture enables you to deploy exactly what you need, when you need it.
 
 ## Quick Links
 
