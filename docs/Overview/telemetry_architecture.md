@@ -4,13 +4,13 @@ Omnia supports telemetry collection to monitor and manage your HPC infrastructur
 
 !!! note
 
-    To enable any telemetry and log collections (LDMS, PowerScale, DCGM, UFM, VAST, or Vector), ensure that the `service_k8s` entry is mentioned in the `software_config.json` file and the corresponding telemetry source fields are set to `true` in the `telemetry_config.yml` file. For example, set `telemetry_sources > powerscale > metrics_enabled = true` to enable PowerScale telemetry.
+    To enable any telemetry and log collections (iDRAC, LDMS, PowerScale, DCGM, UFM, VAST, or Vector), ensure that the `service_k8s` entry is mentioned in the `software_config.json` file and the corresponding telemetry source fields are set to `true` in the `telemetry_config.yml` file. For example, set `telemetry_sources > idrac > metrics_enabled = true` to enable iDRAC telemetry, or `telemetry_sources > powerscale > metrics_enabled = true` to enable PowerScale telemetry.
 
 
 ## Omnia Telemetry Architecture
 
 
-Omnia collects telemetry data from HPC cluster nodes using: LDMS for OS-level metrics and various storage/fabric telemetry sources.
+Omnia collects telemetry data from HPC cluster nodes using: LDMS for OS-level metrics and iDRAC for hardware telemetry.
 
 The following diagram illustrates the telemetry services that can be deployed using Omnia and the data flow between the components.
 
@@ -32,6 +32,7 @@ Hosts telemetry collection and storage services:
 
 - **LDMS Aggregator** -- Receives metrics from slurm compute node samplers.
 - **LDMS Store** -- Stores aggregated LDMS data.
+- **iDRAC Collector** -- Collects hardware telemetry via Redfish API.
 - **Kafka Broker** -- Streams telemetry data.
 - **VMAgent** -- Forwards metrics to VictoriaMetrics.
 - **VictoriaMetrics** -- Time-series database for metric storage.
@@ -59,17 +60,25 @@ Hosts telemetry collection and storage services:
 Each slurm compute node runs:
 
 - **LDMS Sampler** -- Collects OS metrics (CPU, memory, network, and I/O).
+- **iDRAC** -- Provides hardware health data (temperature, power, and fans).
 
 
 ## Telemetry Data Flows
 
 
-### LDMS Telemetry Data Flows
+### iDRAC and LDMS Telemetry Data Flows
 
 **LDMS Flow (OS Metrics)**
 
 ```text
 Slurm Compute Nodes (LDMS Sampler) → LDMS Aggregator → LDMS Store → Kafka
+```
+
+**iDRAC Flow (Hardware Metrics)**
+
+```text
+iDRAC (BMC) → iDRAC Collector → Kafka
+iDRAC (BMC) → iDRAC Collector → VMAgent → Victoria Metrics
 ```
 
 ### UFM Telemetry Data Flows

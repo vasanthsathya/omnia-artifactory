@@ -121,6 +121,7 @@ The orchestrator domain handles workload orchestration, service deployment, and 
 The telemetry domain handles metrics collection, monitoring, and data aggregation.
 
 **Responsibilities**:
+- Collect iDRAC hardware telemetry
 - Collect LDMS node-level metrics
 - Collect storage metrics (PowerScale, VAST)
 - Collect fabric metrics (UFM)
@@ -235,7 +236,7 @@ When deploying a full cluster end-to-end, domains are executed in this order:
 | 3 | **image_build_manager** | Build OS images using mirrored repos, upload to S3 | Yes |
 | 4 | **discovery** | Discover servers via OME, generate PXE mapping | Optional |
 | 5 | **orchestrator** | PXE boot nodes, deploy K8s/Slurm, configure services | Yes |
-| 6 | **telemetry** | Enable UFM telemetry collection | Optional |
+| 6 | **telemetry** | Enable iDRAC/UFM telemetry collection | Optional |
 
 **BuildStream** orchestrates this sequence automatically via GitLab CI/CD pipeline, but each domain can also be run manually via `omnia.sh`.
 
