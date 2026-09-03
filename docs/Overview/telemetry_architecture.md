@@ -1,6 +1,6 @@
 
 # Telemetry Architecture
-Omnia supports telemetry collection to monitor and manage your HPC infrastructure. The telemetry components, data flows, and architecture diagram below describe the supported telemetry sources and how data is collected, transported, and stored.
+Omnia supports telemetry collection to monitor and manage your HPC infrastructure. The telemetry components, data flows, and architecture diagram below describe the supported telemetry sources and how data is collected, transported, and stored. test
 
 !!! note
 
