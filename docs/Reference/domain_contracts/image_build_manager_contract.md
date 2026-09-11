@@ -8,20 +8,91 @@ Image Build Manager consumes `repo_status.yml`, the output contract produced
 by Repository Manager. Build-related flows require the file and validate it
 against the Repo Manager status schema before loading repository data.
 
-| Contract | Default producer output | Structure sample |
-|---|---|---|
-| `repo_status.yml` | `$OMNIA_DATA_PATH/repo_manager/output/$OMNIA_PROJECT_NAME/repo_status.yml` | [Image Build Manager upstream contract samples](https://github.com/dell/omnia/tree/issue-4849-omnia-modernization/src/image_build_manager/samples) (`repo_manager_output/repo_status.yml`) |
+### `repo_status.yml`
+
+**Location**:
+`$OMNIA_DATA_PATH/repo_manager/output/$OMNIA_PROJECT_NAME/repo_status.yml`
+
+**Producer**: Repository Manager.
+
+**Consumer**: Image Build Manager build and execute flows.
 
 The path can be overridden by `repo_manager_output_path` in
-`image_build_config.yml`. The generated Repository Manager output is
-authoritative; the linked file is a structure sample for the consumer
-contract.
+`image_build_config.yml`. The generated Repository Manager output is the
+authoritative contract.
 
-The required contract includes a successful overall status, operating-system
-metadata, versioned repository mappings, and Repo Manager certificate data.
-When a certificate path is present, the certificate must also exist. The
-prepare, validation, precheck, and cleanup flows do not require this upstream
-output.
+#### Structure
+
+The following example shows the structure of a successful Repository Manager
+output. Repository names and artifact entries vary according to the selected
+catalog.
+
+```yaml
+overall_status: "success"
+cluster_os_type: "rhel"
+repo_config: "partial"
+
+execution_contexts:
+  - context_id: "rhel_10.0"
+    os_type: "rhel"
+    os_version: "10.0"
+    architectures:
+      - "x86_64"
+      - "aarch64"
+
+overall_status_by_version:
+  "10.0": "success"
+
+repo_manager:
+  port: 2225
+  certificates:
+    server_crt: "<REPO_MANAGER_DATA_PATH>/pulp_config/settings/certs/pulp_webserver.crt"
+    certs_dir: "<REPO_MANAGER_DATA_PATH>/pulp_config/settings/certs"
+
+repositories:
+  "10.0":
+    x86_64:
+      baseos:
+        url: "https://192.0.2.10:2225/pulp/content/.../baseos/"
+      slurm_custom:
+        url: "https://192.0.2.10:2225/pulp/content/.../slurm_custom/"
+        priority: 100
+    aarch64: {}
+
+registries:
+  private_registry:
+    base_url: "https://registry.example.com"
+    port: 443
+    host: "registry.example.com:443"
+    tls:
+      insecure: false
+
+file_repos:
+  x86_64:
+    tarball:
+      helm_v3_20_1_amd64: "https://192.0.2.10:2225/pulp/content/.../"
+    pip_module:
+      cffi_1_17_1: "https://192.0.2.10:2225/pypi/.../"
+  aarch64: {}
+
+tarball_base_url: "https://192.0.2.10:2225/pulp/content/.../tarball/"
+pip_base_url: "https://192.0.2.10:2225/pypi/.../pip_module/"
+offline_tarball_path: "https://192.0.2.10:2225/pulp/content/.../tarball/"
+offline_pip_module_path: "https://192.0.2.10:2225/pypi/.../pip_module/"
+```
+
+Image Build Manager requires `overall_status`, `cluster_os_type`, and at least
+one version under `repositories`. `overall_status` must be `success`, and at
+least one `x86_64` or `aarch64` repository entry must contain a valid HTTP(S)
+URL. Each optional `priority` value must be an integer from 1 through 100.
+
+The `repo_manager` section is optional. When present, Image Build Manager uses
+`repo_manager.port` and `repo_manager.certificates.server_crt`; if a certificate
+path is specified, the file must exist. Other producer-owned metadata,
+including execution contexts, per-version status, registry configuration, and
+file-repository URLs, is retained in the contract but is not interpreted by
+Image Build Manager. The prepare, validation, precheck, and cleanup flows do
+not require this upstream output.
 
 ## Output contract
 

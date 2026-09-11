@@ -25,31 +25,136 @@ requires a supported deployed source version and successful
 
 ## Upstream domain contracts
 
-| Producer | Output consumed by Orchestrator | Required contract |
-|---|---|---|
-| Repository Manager | `repo_status.yml` | Required provisioning flows validate `overall_status: success`, OS metadata, repository mappings, and the Pulp certificate path; the certificate must exist. |
-| Image Build Manager | `build_status.yml` | Provisioning and PXE flows require `overall_status: success` and a usable S3 endpoint. Functional-group image records supply the boot artifacts. |
-| Discovery or an administrator | `pxe_mapping_file.csv` | Node data must use the mapping columns below. Discovery output must be reviewed and staged for Orchestrator; the handoff is not automatic. |
+### `repo_status.yml`
 
-### Contract locations and structure samples
+**Producer**: Repository Manager.
 
-| Contract | Producer output | Structure sample |
-|---|---|---|
-| `repo_status.yml` | `$OMNIA_DATA_PATH/repo_manager/output/$OMNIA_PROJECT_NAME/repo_status.yml` | [Repository Manager output sample](https://github.com/dell/omnia/blob/issue-4849-omnia-modernization/src/orchestrator/samples/repo_manager_output/repo_status.yml) |
-| `build_status.yml` | `$OMNIA_DATA_PATH/image_build_manager/output/$OMNIA_PROJECT_NAME/build_status.yml` | [Image Build Manager output sample](https://github.com/dell/omnia/blob/issue-4849-omnia-modernization/src/orchestrator/samples/image_build_manager_output/build_status.yml) |
-| `pxe_mapping_file.csv` | `$OMNIA_DATA_PATH/discovery/output/$OMNIA_PROJECT_NAME/bmc_pxe_mapping_file.csv` | [PXE mapping structure sample](https://github.com/dell/omnia/blob/issue-4849-omnia-modernization/src/orchestrator/examples/pxe_mapping_file.csv) |
+**Location**:
+`$OMNIA_DATA_PATH/repo_manager/output/$OMNIA_PROJECT_NAME/repo_status.yml`
+
+Required provisioning flows validate `overall_status: success`, operating
+system metadata, repository mappings, and the Pulp certificate path. The
+certificate file must exist.
+
+#### Structure
+
+Repository and artifact names vary according to the selected catalog.
+
+```yaml
+overall_status: "success"
+cluster_os_type: "rhel"
+repo_config: "partial"
+
+execution_contexts:
+  - context_id: "rhel_10.0"
+    os_type: "rhel"
+    os_version: "10.0"
+    architectures:
+      - "x86_64"
+      - "aarch64"
+
+overall_status_by_version:
+  "10.0": "success"
+
+repo_manager:
+  port: 2225
+  certificates:
+    server_crt: "<REPO_MANAGER_DATA_PATH>/pulp_config/settings/certs/pulp_webserver.crt"
+    certs_dir: "<REPO_MANAGER_DATA_PATH>/pulp_config/settings/certs"
+
+repositories:
+  "10.0":
+    x86_64:
+      baseos:
+        url: "https://192.0.2.10:2225/pulp/content/.../baseos/"
+        priority: 100
+      appstream:
+        url: "https://192.0.2.10:2225/pulp/content/.../appstream/"
+    aarch64: {}
+
+registries:
+  private_registry:
+    base_url: "https://registry.example.com"
+    port: 443
+    host: "registry.example.com:443"
+    tls:
+      insecure: false
+
+file_repos:
+  x86_64:
+    tarball:
+      example_tarball: "https://192.0.2.10:2225/pulp/content/.../tarball/"
+    pip_module:
+      example_module: "https://192.0.2.10:2225/pypi/.../pip_module/"
+  aarch64: {}
+
+tarball_base_url: "https://192.0.2.10:2225/pulp/content/.../tarball/"
+pip_base_url: "https://192.0.2.10:2225/pypi/.../pip_module/"
+offline_tarball_path: "https://192.0.2.10:2225/pulp/content/.../tarball/"
+offline_pip_module_path: "https://192.0.2.10:2225/pypi/.../pip_module/"
+```
+
+### `build_status.yml`
+
+**Producer**: Image Build Manager.
+
+**Location**:
+`$OMNIA_DATA_PATH/image_build_manager/output/$OMNIA_PROJECT_NAME/build_status.yml`
+
+Provisioning and PXE flows require `overall_status: success`, a supported
+`image_build_type`, and a usable S3 endpoint. Functional-group image records
+supply the boot artifacts.
+
+#### Structure
+
+```yaml
+overall_status: "success"
+image_build_type: "image-builder"
+
+s3_configurations:
+  endpoint_url: "http://192.0.2.10:9000"
+  bucket: "boot-images"
+
+functional_group_images:
+  - x86_64:
+      - functional_group: "slurm_control_node_rhel_10_0_x86_64"
+        kernel: "boot-images/efi-images/slurm_control_node_rhel_10_0_x86_64/example-imgbld/vmlinuz-<kernel-version>"
+        initrd: "boot-images/efi-images/slurm_control_node_rhel_10_0_x86_64/example-imgbld/initramfs-<kernel-version>.img"
+        image: "boot-images/slurm_control_node_rhel_10_0_x86_64/example-imgbld/<rootfs-filename>"
+  - aarch64:
+      - functional_group: "slurm_node_rhel_10_0_aarch64"
+        kernel: "boot-images/efi-images/slurm_node_rhel_10_0_aarch64/example-imgbld/vmlinuz-<kernel-version>"
+        initrd: "boot-images/efi-images/slurm_node_rhel_10_0_aarch64/example-imgbld/initramfs-<kernel-version>.img"
+        image: "boot-images/slurm_node_rhel_10_0_aarch64/example-imgbld/<rootfs-filename>"
+```
+
+### `pxe_mapping_file.csv`
+
+**Producer**: Discovery or an administrator.
+
+**Discovery output**:
+`$OMNIA_DATA_PATH/discovery/output/$OMNIA_PROJECT_NAME/bmc_pxe_mapping_file.csv`
+
+**Orchestrator input**:
+`$OMNIA_DATA_PATH/orchestrator/input/$OMNIA_PROJECT_NAME/pxe_mapping_file.csv`
+
+Discovery output must be reviewed and copied to the Orchestrator input path;
+the handoff is not automatic.
+
+#### Structure
+
+The first row must contain the following column names in this order. Each
+subsequent row describes one node.
+
+```csv
+FUNCTIONAL_GROUP_NAME,GROUP_NAME,SERVICE_TAG,PARENT_SERVICE_TAG,HOSTNAME,ADMIN_MAC,ADMIN_IP,BMC_MAC,BMC_IP,IB_NIC_NAME,IB_IP
+slurm_node_x86_64,grp1,ABC1234,PARENT1,slurm-node1,02:00:00:00:00:11,192.0.2.11,02:00:00:00:00:12,198.51.100.11,InfiniBand.Slot.7-1,203.0.113.11
+```
 
 Custom Repo Manager and Image Build Manager output paths can be set in
 `orchestrator_config.yml`. Discovery output must be reviewed and copied to
 `$OMNIA_DATA_PATH/orchestrator/input/$OMNIA_PROJECT_NAME/pxe_mapping_file.csv`.
-Generated producer outputs remain authoritative; the linked files show the
-structures expected by Orchestrator.
-
-The PXE mapping contract is:
-
-```text
-FUNCTIONAL_GROUP_NAME,GROUP_NAME,SERVICE_TAG,PARENT_SERVICE_TAG,HOSTNAME,ADMIN_MAC,ADMIN_IP,BMC_MAC,BMC_IP,IB_NIC_NAME,IB_IP
-```
+Generated producer outputs remain authoritative.
 
 `FUNCTIONAL_GROUP_NAME`, `GROUP_NAME`, `SERVICE_TAG`, `HOSTNAME`, `ADMIN_MAC`,
 and `ADMIN_IP` identify and group each node. Physical PXE operations also use

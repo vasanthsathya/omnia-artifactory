@@ -6,19 +6,29 @@
 
 The deploy pipeline consumes an Orchestrator-compatible
 `pxe_mapping_file.csv`, produced by Discovery or maintained by an
-administrator and staged in the managed GitLab project. Its required columns
-are:
+administrator and staged in the managed GitLab project.
 
-```text
+### `pxe_mapping_file.csv`
+
+**Producer location**:
+`$OMNIA_DATA_PATH/discovery/output/$OMNIA_PROJECT_NAME/bmc_pxe_mapping_file.csv`
+
+**Orchestrator staging location**:
+`$OMNIA_DATA_PATH/orchestrator/input/$OMNIA_PROJECT_NAME/pxe_mapping_file.csv`
+
+#### Structure
+
+The first row must contain the following column names in this order. Each
+subsequent row describes one node.
+
+```csv
 FUNCTIONAL_GROUP_NAME,GROUP_NAME,SERVICE_TAG,PARENT_SERVICE_TAG,HOSTNAME,ADMIN_MAC,ADMIN_IP,BMC_MAC,BMC_IP,IB_NIC_NAME,IB_IP
+slurm_node_x86_64,grp1,ABC1234,PARENT1,slurm-node1,02:00:00:00:00:11,192.0.2.11,02:00:00:00:00:12,198.51.100.11,InfiniBand.Slot.7-1,203.0.113.11
 ```
 
-| Contract | Producer or staged location | Structure sample |
-|---|---|---|
-| `pxe_mapping_file.csv` | Discovery: `$OMNIA_DATA_PATH/discovery/output/$OMNIA_PROJECT_NAME/bmc_pxe_mapping_file.csv`; staged for Orchestrator: `$OMNIA_DATA_PATH/orchestrator/input/$OMNIA_PROJECT_NAME/pxe_mapping_file.csv` | [PXE mapping structure sample](https://github.com/dell/omnia/blob/issue-4849-omnia-modernization/src/orchestrator/examples/pxe_mapping_file.csv) |
-
 Review Discovery output before staging it. The reviewed, staged file is the
-authoritative pipeline input; the linked file is a structure sample.
+authoritative pipeline input. `PARENT_SERVICE_TAG`, `IB_NIC_NAME`, and `IB_IP`
+can be empty when they do not apply to the node.
 
 BuildStreaM infrastructure preparation does not require another domain's
 status output.
