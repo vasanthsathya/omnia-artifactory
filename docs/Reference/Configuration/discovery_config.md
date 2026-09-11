@@ -14,10 +14,15 @@ The default location is
 
 ## Configuration parameters
 
-| Parameter | Type | Required | Description |
-|---|---|---|---|
-| `enable_bmc_discovery` | boolean | Yes | Set to `true` to execute node discovery through OME. |
-| `ome_ip` | IPv4 string | Yes | OME IPv4 address. When discovery is enabled, it must be valid and must not be a loopback address. |
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `enable_bmc_discovery` | boolean | Yes | `false` | Set to `true` to execute node discovery through OME. |
+| `ome_ip` | IPv4 string | Yes | `""` (empty string) | OME IPv4 address. When discovery is enabled, it must be valid and must not be a loopback address. When discovery is disabled, the empty value is ignored. |
+
+Both parameters must remain present in the file. The staged template supplies
+the defaults shown in the table. For an OME discovery run, change
+`enable_bmc_discovery` to `true` and replace the empty `ome_ip` value with the
+OME appliance's IPv4 address.
 
 OME credentials are not stored in this file. The credential workflow creates
 the encrypted `discovery_credentials.yml` and its Vault key in the same
@@ -38,4 +43,3 @@ ome_ip: "192.168.1.100"
 - [Network specification](network_spec.md)
 - [Discovery contract](../domain_contracts/discovery_contract.md)
 - [Discover nodes using OME](../../HowTo/discovery/discover_nodes.md)
-

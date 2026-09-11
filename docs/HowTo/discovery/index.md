@@ -8,6 +8,10 @@ reviewed mapping; it does not consume Discovery output automatically.
 Administrators who do not use OME create the Orchestrator mapping directly.
 Manual inventory is not a Discovery execution mechanism.
 
+For the `discovery_config.yml` file location, parameter requirements, data
+types, defaults, and an example, see the [Discovery configuration
+reference](../../Reference/Configuration/discovery_config.md).
+
 For the complete configuration, execution, and verification workflow, see
 [Discover nodes using OME](discover_nodes.md).
 
@@ -50,8 +54,10 @@ Orchestrator input directory.
   priorities](discover_nodes.md#nic-mac-address-selection), and confirm that OME
   presents the intended admin/PXE and InfiniBand interfaces in the expected
   order and link state.
-- Configure the Discovery-owned `discovery_config.yml` and
-  `network_spec.yml` files.
+- Configure the Discovery-owned
+  [`discovery_config.yml`](../../Reference/Configuration/discovery_config.md)
+  and [`network_spec.yml`](../../Reference/Configuration/network_spec.md)
+  files.
 - Plan the iDRAC hostnames and exact, case-sensitive OME static-group names.
   See [Plan iDRAC hostnames](discover_nodes.md#plan-idrac-hostnames) and
   [Plan OME static groups](discover_nodes.md#plan-ome-static-groups).
