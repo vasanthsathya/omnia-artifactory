@@ -38,17 +38,18 @@ for `execute`.
 | Deployment module | Executable entry point | Implemented customer operations | Module guidance |
 | --- | --- | --- | --- |
 | BuildStreaM | `src/build_stream/playbooks/build_stream.yml` | `precheck`, `validate`, `credentials`, `prepare`, `execute`, `build`, `cleanup` | [How-to guide](../../HowTo/build_stream/index.md) · [Contract](../domain_contracts/build_stream_contract.md) |
-| Discovery | `src/discovery/playbooks/discovery.yml` | `validate`, `credentials`, `execute` | [How-to guide](../../HowTo/discovery/index.md) · [Contract](../domain_contracts/discovery_contract.md) |
+| Discovery | `src/discovery/playbooks/discovery.yml` | `validate`, `credentials`, `execute`, `cleanup`, `cleanup_credentials` | [How-to guide](../../HowTo/discovery/index.md) · [Contract](../domain_contracts/discovery_contract.md) |
 | Image Build Manager | `src/image_build_manager/playbooks/image_build_manager.yml` | `precheck`, `validate`, `credentials`, `prepare`, `execute`, `build`, `cleanup`, `cleanup_images` | [How-to guide](../../HowTo/image_build_manager/index.md) · [Contract](../domain_contracts/image_build_manager_contract.md) |
 | Orchestrator | `src/orchestrator/playbooks/orchestrator.yml` | `precheck`, `validate`, `credentials`, `prepare`, `deploy`, `provision`, `execute`, `validate-deployment`, `pxeboot`, `cleanup`, `cleanup_credentials`, `upgrade`, `rollback` | [How-to guide](../../HowTo/orchestrator/index.md) · [Contract](../domain_contracts/orchestrator_contract.md) |
 | Repository Manager | `src/repo_manager/playbooks/repo_manager.yml` | `precheck`, `credentials`, `prepare`, `deploy`, `execute`, `download`, `status`, `cleanup_pulp`, `cleanup_repos`, and catalog operations | [How-to guide](../../HowTo/repo_manager/index.md) · [Contract](../domain_contracts/repo_manager_contract.md) |
 | Telemetry | `src/telemetry/playbooks/telemetry.yml` | `precheck`, `validate`, `validation`, `execute`, `deploy`, `cleanup`, component cleanup tags, `external_kafka`, `external_victoria` | [How-to guide](../../HowTo/Telemetry/index.md) · [Contract](../domain_contracts/telemetry_contract.md) |
 | Utils | `src/utils/playbooks/utils.yml` | `precheck`, `collect`, `install_os`, `backup_oim_logs`, `cleanup`, `cleanup_logs`, `cleanup_install_os`, `cleanup_backup_oim_logs` | [How-to guide](../../HowTo/utils/index.md) · [Contract](../domain_contracts/utils_contract.md) |
 
-Discovery's `precheck`, `prepare`, `cleanup`, `upgrade`, and `rollback`
-lifecycle files currently contain placeholders. BuildStreaM's upgrade and rollback files, Image Build Manager's
-upgrade and rollback files, and Repo Manager's upgrade and rollback files are
-also placeholders. Do not use a placeholder operation as a deployment step.
+Discovery's `precheck`, `prepare`, `upgrade`, and `rollback` lifecycle files
+currently contain placeholders. BuildStreaM's upgrade and rollback files,
+Image Build Manager's upgrade and rollback files, and Repo Manager's upgrade
+and rollback files are also placeholders. Do not use a placeholder operation
+as a deployment step.
 Utils is an on-demand utility module and does not implement the standard
 `validate`, `credentials`, `prepare`, or `execute` tags.
 

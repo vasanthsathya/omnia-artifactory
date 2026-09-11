@@ -46,15 +46,81 @@ workflow. It does not build OS images.
   10.3.0. The `requests` Python library must also be importable by Ansible, and
   `openssl` must be available to generate a Vault password when the credential
   files do not exist.
-- OME must be reachable from the OIM over TCP port 443.
-- Valid OME credentials must be available. Discovery prompts for missing OME
-  credentials, saves them in `discovery_credentials.yml`, and encrypts the file
-  with Ansible Vault using `.discovery_credentials_key`.
-- Target servers must already be managed by OME as server devices and must have
-  a service tag. Devices without a service tag are not added to the discovered
-  server list.
+- OME must be installed, powered on, and reachable from the OIM over HTTPS on
+  TCP port 443.
+- Credentials for an OME administrator, or an account with equivalent
+  permissions to create an API session and read the required inventory, must be
+  available. Discovery prompts for missing OME credentials, saves them in
+  `discovery_credentials.yml`, and encrypts the file with Ansible Vault using
+  `.discovery_credentials_key`.
+- Every target server must have its BMC/iDRAC interface configured with network
+  connectivity and must already be discovered and managed by OME as a server
+  device. Each target must report a service tag. Devices without a service tag
+  are not added to the discovered server list.
 - OME must expose the device, group, device-management, and server network
   interface inventory used by Discovery.
+
+### Network connectivity requirements
+
+| Connection | Requirement |
+|------------|-------------|
+| OIM to OME | The OIM must be able to route to the configured `ome_ip` and establish an HTTPS connection on TCP port 443. Permit this outbound connection through intervening firewalls. |
+| OME to target BMC/iDRAC | Each BMC/iDRAC interface must have working network configuration and be reachable from OME. Before running Discovery, confirm that OME lists the target as a server device and displays its service tag, management address, and network-interface inventory. |
+| OIM to target BMC/iDRAC | The Discovery workflow does not connect directly to target BMC/iDRAC interfaces. It obtains their management and NIC data through the OME API. Direct or routed OIM-to-iDRAC connectivity can still be required by downstream provisioning and other Omnia operations. |
+
+The OME account must be able to create an API session and read devices, static
+groups and group membership, device-management details, and server
+network-interface inventory. OME administrative access provides these
+permissions. If a restricted account is used, grant equivalent read access to
+these resources.
+
+The subnets in the Discovery-owned `network_spec.yml` are used to derive
+addresses written to the mapping file. They do not configure or validate the
+network paths between the OIM, OME, and target BMC/iDRAC interfaces. For the
+deployment-wide BMC network design, see [Network
+topologies](../../Overview/network_topologies.md).
+
+### NIC MAC address selection
+
+Discovery uses the interface and port order returned by the OME
+`serverNetworkInterfaces` inventory. It does not sort candidates by NIC name,
+slot, port number, or MAC address. Within the same priority, the first candidate
+returned by OME is selected. Review the NIC presentation and port ordering in
+OME after changing adapter, BIOS, or iDRAC configuration.
+
+For the Admin NIC, Discovery excludes any interface whose OME `NicId` contains
+`iDRAC` or `InfiniBand`, using a case-insensitive comparison. A primary
+candidate must contain a port with at least one partition and a nonempty
+`CurrentMacAddress`; Discovery uses the first partition's current MAC address.
+
+**Admin NIC selection priority:**
+
+| Priority | Condition | Selection behavior |
+|----------|-----------|--------------------|
+| 1 | At least one usable non-iDRAC, non-InfiniBand port is reported as `Up` | Select the first `Up` candidate in OME inventory order. Earlier candidates reported as `Down`, `Unknown`, or another state are skipped. |
+| 2 | No usable candidate is reported as `Up`, but the primary inventory contains a usable candidate | Select the first usable non-iDRAC, non-InfiniBand candidate in OME inventory order, regardless of its reported state. This is the fallback when all usable candidates are `Down`, `Unknown`, or another non-`Up` state. |
+| 3 | The primary inventory contains no usable candidate | Query the OME `deviceNics` inventory and select the first non-iDRAC, non-InfiniBand entry. If neither inventory supplies a usable MAC address, leave `ADMIN_MAC` empty. The secondary inventory does not supply the selected port's link status. |
+
+The selected Admin MAC is written to `ADMIN_MAC` in the PXE mapping and to
+`ETHERNET_NIC_MAC` in the discovery report. Its primary-inventory link state is
+written only to `ETHERNET_NIC_LINK_STATUS` in the report.
+
+For InfiniBand, Discovery evaluates interfaces whose OME `NicId` contains
+`InfiniBand`, then evaluates their ports in the order returned by OME.
+
+**InfiniBand NIC selection priority:**
+
+| Priority | Condition | Selection behavior |
+|----------|-----------|--------------------|
+| 1 | An InfiniBand port is reported as `Up` | Select the first `Up` port in OME inventory order. |
+| 2 | No port is `Up`, but a port is reported as `Unknown` or without a status | Select the first such port as the fallback. A missing status is normalized to `Unknown`. |
+| 3 | No port is `Up` or `Unknown`, but an InfiniBand port has another state such as `Down` | Select the first port at this priority as the last resort. |
+
+If OME reports no interface whose `NicId` contains `InfiniBand`, Discovery
+leaves `IB_NIC_NAME` and `IB_NIC_LINK_STATUS` empty in the report and leaves
+`IB_NIC_NAME` and `IB_IP` empty in the mapping. This is expected for servers
+that do not require InfiniBand. If an interface is expected, refresh and verify
+the server inventory in OME before rerunning Discovery.
 
 ### Input contract
 
@@ -143,6 +209,31 @@ validate the entire hostname or those ranges.
     Discovery uses `grp0`. An incorrect `GROUP_NAME` can also prevent or
     misdirect `PARENT_SERVICE_TAG` assignment for Slurm compute nodes.
 
+### Plan Scalable Unit service nodes
+
+For a deployment with N Scalable Units, provide N dedicated
+`service_kube_node_x86_64` servers, with one server in each Scalable Unit. The
+service Kubernetes worker and the Slurm compute nodes associated with that
+Scalable Unit must resolve to the same `GROUP_NAME`. Discovery then uses the
+worker's service tag as `PARENT_SERVICE_TAG` for the
+`slurm_node_x86_64` and `slurm_node_aarch64` rows in that group.
+
+A service Kubernetes cluster must include `service_kube_node_x86_64` in the
+mapping. The cluster-wide minimum also includes three
+`service_kube_control_plane_x86_64` servers. For the complete service-cluster
+requirements, see [Kubernetes
+requirements](../../Reference/ClusterRequirements/kubernetes_requirements.md)
+and [Deploy Service Kubernetes](../orchestrator/deploy_kubernetes.md).
+
+!!! warning
+
+    Discovery does not validate the number of service Kubernetes workers in
+    each Scalable Unit. If a group has no `service_kube_node_x86_64`, Discovery
+    leaves `PARENT_SERVICE_TAG` empty for its Slurm compute nodes. If a group
+    has multiple service Kubernetes workers, Discovery uses the first one in
+    the generated mapping. Review these relationships before copying the
+    mapping to the Orchestrator input directory.
+
 ### Plan OME static groups
 
 When OME exposes a `Static Groups` container, Discovery uses its immediate
@@ -203,15 +294,18 @@ the discovery report.
 
 For `slurm_node_x86_64` and `slurm_node_aarch64`, Discovery populates
 `PARENT_SERVICE_TAG` from a `service_kube_node_x86_64` server with the same
-derived `GROUP_NAME`. Plan the iDRAC hostnames and static-group membership
-accordingly when this relationship is required.
+derived `GROUP_NAME`. For an N-Scalable-Unit deployment, verify that each
+Scalable Unit contains its dedicated service Kubernetes worker as described in
+[Plan Scalable Unit service nodes](#plan-scalable-unit-service-nodes).
 
 ## Procedure
 
 1. In OME, discover or manage the target servers that Omnia will provision.
    Confirm that each target appears in OME as a server device and has a service
-   tag. Omnia queries the existing OME inventory; it does not add devices to
-   OME. For the version-specific device-discovery procedure, see the
+   tag, an iDRAC management address, and the expected network-interface
+   inventory. Confirm that the account used by Discovery can view these
+   details. Omnia queries the existing OME inventory; it does not add devices
+   to OME. For the version-specific device-discovery procedure, see the
    [Dell OpenManage Enterprise documentation](https://www.dell.com/support/product-details/en-us/product/dell-openmanage-enterprise/docs){target="_blank"}.
 
 2. [Configure the Main environment](../main/configure_environment.md). The
@@ -275,6 +369,7 @@ accordingly when this relationship is required.
 7. From `src/main`, validate `discovery_config.yml` before contacting OME:
 
     ```bash title="Run on: OIM host"
+    cd src/main
     ./omnia.sh --run discovery --tags validate
     ```
 
@@ -298,35 +393,156 @@ accordingly when this relationship is required.
     execution flow. The `credentials` tag updates credentials without running
     discovery. Use only one tag in a command. See [Run
     Discovery](index.md#run-discovery) for the complete tag table, including
-    the lifecycle placeholders that do not perform work in this release.
+    the supported cleanup operations and lifecycle placeholders.
 
-    A successful run without BuildStreaM prints a completion summary in this
-    form:
+    The supported Discovery execution flow uses OME. The playbook sets
+    `discovery_mechanism` to `ome` internally; do not pass
+    `-e discovery_mechanism=ome`.
 
-    ```text title="Expected output"
-    ============================================================
-    OME Discovery Complete
-    ============================================================
-    BMC PXE mapping file generated: /opt/omnia/discovery/output/project_default/bmc_pxe_mapping_file_<timestamp>.csv
-    BMC discovery report generated: /opt/omnia/discovery/output/project_default/bmc_discovery_report_<timestamp>.csv
-      (Lists link status of BMC, Ethernet, and InfiniBand NICs for each server)
-    Total servers discovered: <count>
+### Expected completion output
 
-    Output directory: /opt/omnia/discovery/output/project_default
+A successful run without BuildStreaM prints a completion summary in this form:
 
-    Next Steps:
-    1. Review and edit the generated PXE mapping file.
-    2. Review the discovery report for NIC link statuses.
-    3. Update HOSTNAME, FUNCTIONAL_GROUP_NAME, GROUP_NAME as needed.
-    4. Copy the mapping file to the Orchestrator input directory.
-    ============================================================
-    ```
+```text title="Representative success output"
+============================================================
+OME Discovery Complete
+============================================================
+BMC PXE mapping file generated: /opt/omnia/discovery/output/project_default/bmc_pxe_mapping_file_<timestamp>.csv
+BMC discovery report generated: /opt/omnia/discovery/output/project_default/bmc_discovery_report_<timestamp>.csv
+  (Lists link status of BMC, Ethernet, and InfiniBand NICs for each server)
+Total servers discovered: <count>
 
-    The current Discovery implementation may print a BuildStreaM-specific
-    completion message only when a `build_stream_config.yml` is present in the
-    Discovery input directory. That file is not part of the Discovery input
-    contract. Follow the BuildStreaM handoff in [Next steps](#next-steps)
-    instead of copying another domain's configuration into this directory.
+Output directory: /opt/omnia/discovery/output/project_default
+
+Next Steps:
+1. Review and edit the generated PXE mapping file.
+2. Review the discovery report for NIC link statuses.
+3. Update HOSTNAME, FUNCTIONAL_GROUP_NAME, GROUP_NAME as needed.
+4. Copy the mapping file to the Orchestrator input directory.
+============================================================
+```
+
+The current Discovery implementation may print a BuildStreaM-specific
+completion message only when a `build_stream_config.yml` is present in the
+Discovery input directory. That file is not part of the Discovery input
+contract. Follow the BuildStreaM handoff in [Next steps](#next-steps)
+instead of copying another domain's configuration into this directory.
+
+## BMC discovery report
+
+Discovery generates a read-only CSV report from the OME inventory for every
+discovered server that has a service tag. The report provides a point-in-time
+view of the BMC, selected Ethernet, and selected InfiniBand interfaces and
+their OME-reported link states. Review it before provisioning to identify
+missing inventory or connectivity that can prevent management access or PXE
+boot.
+
+### Report location
+
+The report is written to the Discovery-owned project output directory:
+
+```text
+<OMNIA_DATA_PATH>/discovery/output/<OMNIA_PROJECT_NAME>/bmc_discovery_report_<timestamp>.csv
+```
+
+With the standard data path and project name, the location is:
+
+```text
+/opt/omnia/discovery/output/project_default/bmc_discovery_report_<timestamp>.csv
+```
+
+The timestamp matches the timestamped PXE mapping generated by the same run.
+Unlike the mapping, the report does not have a stable symbolic link. Use the
+path printed in the completion output or substitute the mapping timestamp when
+opening the report.
+
+### Report columns
+
+| Column | Description |
+|--------|-------------|
+| `SERVICE_TAG` | Dell service tag used to correlate the row with the physical server, OME inventory, and PXE mapping. |
+| `BMC_MAC` | MAC address from the server's OME iDRAC management record. |
+| `BMC_IP` | IP address from the server's OME iDRAC management record. |
+| `BMC_NIC_STATUS` | `Up` when Discovery finds an iDRAC management record. This value represents OME inventory availability; it is not a live reachability test from the OIM. |
+| `ETHERNET_NIC_MAC` | MAC address of the selected non-iDRAC, non-InfiniBand Ethernet interface. Discovery prefers the first usable interface reported as `Up`, then falls back to the first usable interface. |
+| `ETHERNET_NIC_LINK_STATUS` | OME-reported link state of the Ethernet interface selected for `ETHERNET_NIC_MAC`. |
+| `IB_NIC_NAME` | OME identifier for the selected InfiniBand port. Empty when OME reports no InfiniBand interface. |
+| `IB_NIC_LINK_STATUS` | OME-reported link state of the selected InfiniBand port. Empty when no InfiniBand interface is selected. |
+
+### Sample report
+
+```csv title="Illustrative bmc_discovery_report_<timestamp>.csv"
+SERVICE_TAG,BMC_MAC,BMC_IP,BMC_NIC_STATUS,ETHERNET_NIC_MAC,ETHERNET_NIC_LINK_STATUS,IB_NIC_NAME,IB_NIC_LINK_STATUS
+H94M8F3,B8:CE:F6:57:89:D0,172.16.0.101,Up,B0:7B:25:D8:4A:F4,Up,InfiniBand.Slot.3-1,Unknown
+J7KN2G4,A4:BF:01:12:34:56,172.16.0.102,Up,E4:43:4B:01:23:45,Up,,
+K5LP9H2,D0:94:66:AB:CD:EF,172.16.0.103,Up,24:6E:96:78:90:12,Unknown,InfiniBand.Slot.3-1,Up
+```
+
+The values are examples only. Compare each row with the corresponding server
+and current OME inventory.
+
+### Interpret NIC link status
+
+- **BMC:** A value of `Up` means that Discovery found an iDRAC management
+  record in OME. Confirm BMC connectivity in OME or with an approved network
+  test when current reachability must be established. An empty value indicates
+  that the required management record was not returned.
+- **Ethernet:** `Up` indicates that OME reports a link for the selected
+  Ethernet port. `Down` generally indicates no active physical link.
+  `Unknown` means that OME did not provide a definitive state. When no usable
+  Ethernet port is reported as `Up`, Discovery records the first usable
+  non-iDRAC, non-InfiniBand port as a fallback.
+- **InfiniBand:** Discovery prefers a port reported as `Up`, then `Unknown`,
+  then another reported state such as `Down`. An `Unknown` state can occur even
+  when the fabric becomes available at the operating-system level. Confirm the
+  fabric independently before provisioning workloads that require it.
+
+### Pre-provisioning checks
+
+Before copying the mapping to the Orchestrator input directory:
+
+1. Confirm that every expected service tag appears in the report.
+2. Confirm that `BMC_IP` and `BMC_MAC` match the intended server's iDRAC
+   inventory.
+3. Confirm that `ETHERNET_NIC_MAC` is the interface connected to the admin/PXE
+   network and investigate `Down`, `Unknown`, or empty link states.
+4. Confirm that servers requiring InfiniBand have an `IB_NIC_NAME`, and
+   investigate an unexpected or empty link state.
+5. Compare the report and mapping rows by `SERVICE_TAG`, using files with the
+   same timestamp.
+
+### Troubleshoot NIC connectivity
+
+If the expected interface is missing or has an unexpected state:
+
+1. Locate the server by `SERVICE_TAG` in the report and inspect the BMC,
+   Ethernet, and InfiniBand fields together.
+2. In OME, refresh the server inventory and confirm the iDRAC management
+   record, NIC ordering, current MAC addresses, and port link states.
+3. For an Ethernet state of `Down` or `Unknown`, inspect the cable, switch port,
+   and server BIOS/iDRAC NIC settings. Confirm that the intended admin/PXE port
+   is enabled and connected.
+4. For an InfiniBand state of `Down` or `Unknown`, inspect the adapter, cable,
+   fabric port, and fabric configuration. Validate the link at the operating
+   system when OME cannot determine its state.
+5. Rerun Discovery after OME shows the corrected inventory, then review the
+   newly timestamped report and mapping together.
+
+For selection-specific guidance, see [The admin MAC address is unexpected or
+empty](#the-admin-mac-address-is-unexpected-or-empty) and [InfiniBand fields are
+empty](#infiniband-fields-are-empty).
+
+### Relationship to the PXE mapping
+
+| Attribute | PXE mapping file | BMC discovery report |
+|-----------|------------------|----------------------|
+| Purpose | Reviewed input handed to Orchestrator for provisioning | Diagnostic and inventory snapshot used before provisioning |
+| Rows | Servers in supported OME static groups, plus unassigned servers | Every discovered OME server that has a service tag |
+| Editable | Review and correct values before the Orchestrator handoff | No; retain as a read-only record of the OME inventory |
+| NIC link status | Not included | Includes BMC, selected Ethernet, and selected InfiniBand status |
+| IP addresses | Includes `ADMIN_IP`, `BMC_IP`, and `IB_IP` | Includes `BMC_IP` only |
+| Hostname | Includes the generated `HOSTNAME` | Not included |
+| Downstream use | Copied to the Orchestrator input project as `pxe_mapping_file.csv` | Not consumed by Orchestrator |
 
 ## Verification
 
@@ -394,7 +610,25 @@ accordingly when this relationship is required.
     | `IB_NIC_NAME` | InfiniBand port identifier selected with priority `Up`, then `Unknown`, then another reported state; empty when no InfiniBand NIC is found. |
     | `IB_IP` | InfiniBand subnet's first two octets combined with the BMC IP's last two octets; empty when no InfiniBand NIC is found. |
 
-4. Review the report with the same timestamp as the mapping file. Replace
+4. **Server attribute checklist:** Use `SERVICE_TAG` to correlate every mapping
+   row with the physical server and its OME inventory. Confirm the following
+   values before handing the mapping to Orchestrator:
+
+    | Attribute | Confirmation |
+    |-----------|--------------|
+    | Server coverage | Every expected service tag occurs exactly once. Investigate an absent server in the discovery report and its OME static-group assignment. |
+    | `FUNCTIONAL_GROUP_NAME` | The value is the server's intended Omnia role and exactly matches a supported, case-sensitive functional-group name. An unassigned OME server defaults to `slurm_node_aarch64`; retain that default only when it is the intended role. |
+    | `ADMIN_MAC` | The value is nonempty, unique, and matches the Ethernet port that the server will use on the admin/PXE network. Compare it with the OME interface inventory and `ETHERNET_NIC_MAC` in the discovery report. Prefer a port whose reported link status is `Up`. |
+    | `BMC_IP` | The value is nonempty and matches the iDRAC management address reported for that service tag in OME. Discovery copies this value from OME; it does not confirm that the address is correct for the physical server. |
+    | `HOSTNAME` | The value is unique and matches the deployment's hostname plan. Discovery generates a three-digit `nid` sequence beginning with `nid001`; edit the value when the generated assignment is not the intended one. |
+
+    !!! warning
+
+        A generated mapping can contain syntactically valid values that do not
+        match the intended physical server or deployment role. Correct the
+        reviewed mapping before copying it to the Orchestrator input directory.
+
+5. Review the report with the same timestamp as the mapping file. Replace
    `<timestamp>` with the value in the mapping filename:
 
     ```bash title="Run on: OIM host"
@@ -408,7 +642,9 @@ accordingly when this relationship is required.
 
     The report includes every discovered server with a service tag. The mapping
     can contain fewer rows when a server was assigned to an unsupported OME
-    static group.
+    static group. See [BMC discovery report](#bmc-discovery-report) for the
+    column definitions, status interpretation, pre-provisioning checks, and
+    troubleshooting procedure.
 
 ## Next steps
 
@@ -447,7 +683,33 @@ accordingly when this relationship is required.
 ### OME is unreachable
 
 Discovery waits up to 30 seconds for `<ome_ip>:443`. Confirm that `ome_ip` is
-correct, OME is powered on, and the OIM can reach TCP port 443.
+correct, OME is powered on, and routing and firewall rules allow the OIM to
+reach OME on TCP port 443.
+
+From the OIM, test the same HTTPS endpoint used to create an OME API session:
+
+```bash title="Run on: OIM host"
+curl --insecure --silent --show-error --connect-timeout 10 \
+  --output /dev/null --write-out "HTTP status: %{http_code}\n" \
+  https://<ome-ip>/api/SessionService/Sessions
+```
+
+An HTTP status confirms that the OIM reached the OME web service. An HTTP
+status such as `401` only indicates that this unauthenticated connectivity test
+was rejected as expected. An `HTTP status: 000`, timeout, connection refusal,
+or TLS error indicates that the OIM did not complete the HTTPS request; check
+the address, route, firewall, OME service, and certificate configuration.
+
+!!! warning
+
+    Do not add an OME username or password to this command. Discovery obtains
+    credentials from the Vault-encrypted project credential file.
+
+Review the Discovery log for the port check or API error:
+
+```bash title="Run on: OIM host"
+tail -n 100 /var/log/omnia/discovery/discovery.log
+```
 
 ### OME authentication fails
 
@@ -455,13 +717,23 @@ Correct the `ome_username` and `ome_password` values managed in
 `discovery_credentials.yml` before running Discovery again. Rerunning alone
 does not replace nonempty stored credentials. If the credential file is
 Vault-encrypted, its matching `.discovery_credentials_key` must be present in
-the same project input directory.
+the same project input directory. Confirm that the OME account can create an
+API session and read the required device, group, management, and interface
+inventory.
 
 ### No servers are discovered
 
 Confirm that OME manages the target devices as server type `1000` and that the
 devices have nonempty service tags. Discovery fails when the filtered server
 list is empty.
+
+### BMC or iDRAC information is missing
+
+Confirm that the target BMC/iDRAC interface has working network connectivity
+and that OME can manage it. In OME, verify that the server exposes its iDRAC
+management address, MAC address, and server network-interface inventory.
+Discovery reads these values from OME and does not probe the target iDRAC
+directly.
 
 ### A server belongs to multiple OME static groups
 
@@ -478,12 +750,23 @@ discovery report if OME supplied its service tag.
 
 ### The admin MAC address is unexpected or empty
 
-Check `ETHERNET_NIC_MAC` and `ETHERNET_NIC_LINK_STATUS` in the discovery report
-and inspect the server network-interface inventory in OME. Discovery excludes
-iDRAC and InfiniBand interfaces, selects the first usable port reported as
-`Up`, and otherwise falls back to the first usable non-iDRAC,
-non-InfiniBand port. If that inventory produces no MAC address, Discovery
-attempts the OME `deviceNics` inventory as a fallback.
+1. Find the server by service tag in the timestamped discovery report and check
+   its `ETHERNET_NIC_MAC` and `ETHERNET_NIC_LINK_STATUS` values.
+2. In OME, inspect the server network-interface inventory. Verify the NIC
+   ordering, the port state, and the current MAC address reported for each
+   Ethernet interface. Discovery excludes iDRAC and InfiniBand interfaces and
+   selects the first usable Ethernet port reported as `Up`.
+3. If the intended port is `Down` or `Unknown`, check its cable, switch port,
+   and server BIOS/iDRAC NIC settings. If no usable Ethernet port is `Up`,
+   Discovery falls back to the first usable non-iDRAC, non-InfiniBand port in
+   the OME inventory.
+4. Refresh the server inventory in OME, verify that the updated port order,
+   link state, and MAC address are visible, and rerun Discovery.
+
+If the primary server network-interface inventory produces no MAC address,
+Discovery attempts the OME `deviceNics` inventory as a final fallback. A blank
+`ADMIN_MAC` after the OME inventory is refreshed indicates that neither
+inventory returned a usable Ethernet MAC address.
 
 ### InfiniBand fields are empty
 
@@ -493,9 +776,26 @@ port, then `Unknown`, and then another reported state.
 
 ### Group names or parent service tags are incorrect
 
-Ensure the iDRAC hostname contains an `SU` identifier immediately followed by
-an `R` and rack number, such as `SU1R2OU1C5`. For Slurm compute-node roles,
-ensure a `service_kube_node_x86_64` server resolves to the same `GROUP_NAME`.
+The generated `HOSTNAME` and the OME-reported iDRAC hostname serve different
+purposes. Discovery generates `HOSTNAME` as an `nid` sequence. It uses the
+iDRAC hostname reported by OME only to derive `GROUP_NAME`.
+
+1. In OME, inspect the iDRAC instrumentation name, DNS name, or device name
+   displayed for the server. Discovery uses the first available value in that
+   order.
+2. Ensure that the value contains an `SU` identifier immediately followed by
+   an `R` and rack number, such as `SU1R2OU1C5`. If no recognized `SU...R...`
+   sequence is present, Discovery assigns `grp0`.
+3. Correct the iDRAC hostname, refresh the server inventory in OME, and rerun
+   Discovery. See [Plan iDRAC hostnames](#plan-idrac-hostnames) for the complete
+   convention.
+4. For a Slurm compute-node role, ensure that one
+   `service_kube_node_x86_64` server resolves to the same `GROUP_NAME`.
+   Otherwise, `PARENT_SERVICE_TAG` remains empty or can identify the wrong
+   service node.
+5. Review and, if necessary, edit the generated `HOSTNAME`, `GROUP_NAME`, and
+   `PARENT_SERVICE_TAG` before copying the mapping to the Orchestrator input
+   directory.
 
 ### OME discovery execution fails
 

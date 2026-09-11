@@ -120,7 +120,7 @@ deployment procedures.
 |---|---|
 | `repo_manager` | `precheck`, `credentials`, `prepare`/`deploy`, `download`/`execute`, `status`, `cleanup_pulp`/`cleanup`, `cleanup_repos`, and catalog-operation tags |
 | `image_build_manager` | `precheck`, `validate`, `credentials`, `prepare`, `build`/`execute`, `x86_64`, `aarch64`, `cleanup`, `cleanup_images` |
-| `discovery` | `validate`, `credentials`, `execute`, and the `discovery` execution alias; `precheck`, `prepare`, `cleanup`, `upgrade`, and `rollback` currently select placeholder flows |
+| `discovery` | `validate`, `credentials`, `execute`, the `discovery` execution alias, `cleanup`, and `cleanup_credentials`; `precheck`, `prepare`, `upgrade`, and `rollback` currently select placeholder flows |
 | `orchestrator` | `precheck`, `validate`, `credentials`, `prepare`, `deploy`, `provision`, `execute`, `validate-deployment`, `pxeboot`, `cleanup`, `cleanup_credentials` |
 | `telemetry` | `precheck`, `validate`/`validation`, `execute`/`deploy`, `cleanup`, source-specific cleanup tags, `external_kafka`, `external_victoria` |
 | `build_stream` | `precheck`, `validate`, `credentials`, `prepare`, `execute`, `build`, `cleanup` |

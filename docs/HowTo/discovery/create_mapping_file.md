@@ -18,6 +18,8 @@ The mapping is an Orchestrator-owned input. Create it in either of these ways:
 - Collect the service tag, admin/PXE NIC MAC and IP, and any BMC and
   InfiniBand information required for each target node.
 - Plan the functional-group and physical-group assignments.
+- For a deployment with N Scalable Units, plan N dedicated
+  `service_kube_node_x86_64` servers, with one server in each Scalable Unit.
 - Ensure that an image exists for every functional group that Orchestrator
   will provision.
 
@@ -106,6 +108,9 @@ os_aarch64,grp7,ABEF78,,nid006,02:00:00:00:11:06,172.16.107.61,02:00:00:00:12:06
   column.
 - Keep every `ADMIN_IP` within the primary or additional admin subnets in the
   Orchestrator `network_spec.yml`.
+- For each Scalable Unit, assign its dedicated `service_kube_node_x86_64` and
+  associated Slurm compute nodes the same `GROUP_NAME`. Set each Slurm compute
+  node's `PARENT_SERVICE_TAG` to that worker's `SERVICE_TAG`.
 - Verify BMC addresses, service tags, parent relationships, and InfiniBand
   values manually. Validation does not prove that those values match the
   physical server.

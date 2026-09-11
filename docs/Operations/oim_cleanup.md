@@ -40,7 +40,7 @@ each domain owns and exposes its cleanup workflow.
 | `build_stream` | Removes GitLab and BuildStreaM services, the watcher, PostgreSQL service, NFS artifacts, and BuildStreaM credentials. PostgreSQL data is preserved by default. |
 | `telemetry` | Removes enabled telemetry sources and sinks. Persistent volumes, including the iDRAC MySQL PVC, are preserved by default. |
 | `orchestrator` | Removes enabled OpenCHAMI, OpenLDAP, Slurm, Kubernetes, storage-mount, and generated Orchestrator resources. Credentials are removed by default. |
-| `discovery` | Runs the reserved cleanup entry point. The current source implementation is a placeholder and does not remove Discovery artifacts. |
+| `discovery` | Empties the current project's Discovery output directory while preserving the directory, and removes Discovery credentials by default. |
 | `image_build_manager` | Removes MinIO, the registry, build output, domain data, logs, and Image Build Manager credentials. |
 | `repo_manager` | Removes the Pulp deployment, Pulp data, CLI configuration, repository integration, and logs. Credential removal is selected interactively unless explicitly configured. |
 | `utils` | The general cleanup removes cluster-log collection directories and temporary unattended-OS-installation artifacts. OIM log backups require the separate `cleanup_backup_oim_logs` tag. Credential removal is selected interactively when applicable. |
@@ -80,10 +80,13 @@ environment.
     top-level BuildStreaM playbook can fail during parsing before the
     `cleanup` tag runs.
 
-!!! note
+!!! warning
 
-    Discovery currently reports that cleanup is reserved for a future
-    release. Running the command does not remove Discovery artifacts.
+    Discovery cleanup removes every artifact from the current project's output
+    directory and removes the Discovery credential file and Vault key by
+    default. Copy any mapping required by Orchestrator before cleanup. See
+    [Clean up Discovery data](../HowTo/discovery/index.md#clean-up-discovery-data)
+    for credential-preservation and credentials-only commands.
 
 ### 2. Select optional destructive behavior
 

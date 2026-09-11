@@ -210,9 +210,7 @@
       add('step', 's-telem', {
         title: 'Enable Telemetry',
         desc: '<code>telemetry.yml</code>',
-        details: S.mode === 'buildstream'
-          ? { href: '../HowTo/build_stream/initialize_telemetry.html', text: 'Learn more: Initialize telemetry >>' }
-          : { href: '../HowTo/Telemetry/deploy_telemetry.html', text: 'Learn more: Deploy telemetry >>' }
+        details: { href: '../HowTo/Telemetry/deploy_telemetry.html', text: 'Learn more: Deploy telemetry >>' }
       });
     }
     add('connector', 'cf3', {});

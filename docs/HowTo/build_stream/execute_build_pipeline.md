@@ -4,10 +4,9 @@ Update the `catalog_rhel.json` file and execute the BuildStreaM build pipeline t
 
 ## Overview
 
-The BuildStreaM build pipeline automates the creation of diskless images based on catalog specifications. The pipeline consists of four sequential stages:
+The BuildStreaM build pipeline automates the creation of diskless images based on catalog specifications. The pipeline consists of three sequential stages:
 
 - **parse-catalog**: Parses and validates the catalog file for build requirements
-- **generate-input-files**: Generates input files and configuration data for image building
 - **create-local-repository**: Creates and configures the local repository for build artifacts
 - **build-image**: Builds the diskless images based on catalog specifications
 
@@ -41,6 +40,35 @@ The build pipeline is automatically triggered when you update the `catalog_rhel.
   - This requirement applies to the OIM root partition before pipeline execution
   - Insufficient disk space can cause pipeline failures during image builds
   - Monitor disk usage during pipeline execution, especially for multi-architecture builds
+
+### Repository content prerequisites
+
+Select the RHEL 10.0 catalog that matches the workload, node architectures,
+and VAST requirement from:
+
+```text
+src/main/samples/catalogs/10.0/
+```
+
+See [Select or update the catalog](../main/update_catalog.md) for the available
+Slurm, service Kubernetes, combined, and `_no_vast` variants. Before starting
+the pipeline, configure each repository referenced by the selected catalog in
+`$OMNIA_DATA_PATH/repo_manager/input/$OMNIA_PROJECT_NAME/repo_manager_config.yml`.
+Configure the Pulp service endpoint in
+`$OMNIA_DATA_PATH/repo_manager/input/$OMNIA_PROJECT_NAME/repo_manager_endpoint_config.yml`.
+
+| Repository content | Prerequisite |
+|---|---|
+| RHEL | Use an active RHEL subscription or provide reachable `baseos`, `appstream`, and `codeready-builder` URLs for every selected architecture. |
+| Slurm | Host the catalog-required Slurm RPMs and configure `repositories."10.0".<architecture>.user_repos.slurm_custom.url`. Package names in the repository must match the selected catalog. |
+| LDMS | Host the catalog-required `ovis-ldms` RPM and configure `repositories."10.0".<architecture>.user_repos.ldms.url`. The supplied RHEL 10.0 catalogs reference this repository. |
+| VAST | When the selected catalog references `vast`—the Slurm variants without the `_no_vast.json` suffix—host the `vastnfs` RPM and configure `repositories."10.0".<architecture>.user_repos.vast.url`. A VAST repository is not required by the `_no_vast` variants. |
+
+Each custom repository must expose `repodata/repomd.xml` and be reachable from
+the OIM. Repo Manager synchronizes and publishes these repositories; it does
+not build the Slurm, LDMS, or VAST RPMs. For configuration details, see
+[Add an RPM Repository](../repo_manager/adding_additional_repositories.md) and
+[Software Requirements](../../Reference/ClusterRequirements/software_requirements.md).
 
 ## Procedure
 
@@ -100,7 +128,6 @@ The build pipeline is automatically triggered when you update the `catalog_rhel.
 
     - **parse-catalog**: Parses and validates the catalog file
     - **create-local-repository**: Creates and configures the local repository
-    - **generate-input-files**: Generates input files for image building
     - **build-image**: Builds the diskless images
 
 4. Review the stage status indicators:
@@ -140,13 +167,10 @@ After the pipeline completes:
 
 - **Parse-Catalog stage failing**: Ensure the JSON is aligned with the expected schema. See catalog examples at [https://github.com/dell/omnia/tree/pub/build_stream/examples/catalog](https://github.com/dell/omnia/tree/pub/build_stream/examples/catalog).
 - **Repository Manager stage failing**: Check the log path from the API
-  response and verify the selected catalog and `repo_manager_config.yml`.
+  response and verify the selected catalog, `repo_manager_config.yml`, and
+  `repo_manager_endpoint_config.yml`.
 - **Build-Image stage failing**: Ensure the catalog has valid functional groups.
 - For additional issues, see [BuildStreaM Troubleshooting](../../Troubleshooting/build_stream/build_stream.md).
-
-
-
-
 
 
 

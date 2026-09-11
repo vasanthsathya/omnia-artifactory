@@ -6,6 +6,19 @@
 
 Discovery does not require another deployment domain's status output.
 
+## External connectivity contract
+
+| Connection | Requirement |
+|---|---|
+| OIM to OME | HTTPS on TCP port 443 must be routable from the OIM to `ome_ip`. |
+| OME to target BMC/iDRAC | Every target BMC/iDRAC must have working network connectivity and must already be discovered and managed by OME as a server device. |
+| OIM to target BMC/iDRAC | Discovery does not use a direct connection. It reads BMC/iDRAC management and NIC inventory through OME. Other Omnia workflows can require this connectivity. |
+
+The OME account must have administrative access or equivalent permissions to
+create an API session and read devices, static groups and their members,
+device-management details, and server network-interface inventory. Discovery
+does not add devices to OME or configure BMC/iDRAC networking.
+
 ## Output contract
 
 Discovery writes its customer-readable artifacts to:
@@ -59,6 +72,14 @@ For `slurm_node_x86_64` and `slurm_node_aarch64`, Discovery sets
 for other functional groups or when a matching service Kubernetes worker is
 not present.
 
+For a deployment with N Scalable Units, provide N dedicated
+`service_kube_node_x86_64` servers, with one server in each Scalable Unit. Each
+worker and its associated Slurm compute nodes must resolve to the same
+`GROUP_NAME`. Discovery does not validate this topology. If a group contains
+multiple service Kubernetes workers, it uses the first worker in the generated
+mapping as the parent. Review every generated parent relationship before the
+mapping is handed to Orchestrator.
+
 ### `discovery_status.yml`
 
 | Field | Purpose |
@@ -79,7 +100,9 @@ from an earlier run.
 
 Run the domain from `src/main` with `./omnia.sh --run discovery`. The supported
 tags are `precheck`, `validate`, `credentials`, `prepare`, `execute`,
-`discovery`, `cleanup`, `upgrade`, and `rollback`. Tags are mutually exclusive.
+`discovery`, `cleanup`, `cleanup_credentials`, `upgrade`, and `rollback`. Use
+one tag at a time, except for the supported `cleanup,cleanup_credentials`
+combination.
 
 The operational tags are:
 
@@ -90,10 +113,23 @@ The operational tags are:
 | `credentials` | Creates or updates the encrypted OME credential file. |
 | `execute` | Runs the OME discovery flow. |
 | `discovery` | Alias of `execute`. |
+| `cleanup` | Empties the current project's Discovery output directory and removes credentials by default. |
+| `cleanup_credentials` | Removes only the Discovery credential file and Vault key. |
 
-`precheck`, `prepare`, `cleanup`, `upgrade`, and `rollback` are accepted
-placeholders in the current source. They do not perform the named lifecycle
-operation. In particular, `cleanup` does not remove Discovery artifacts.
+`precheck`, `prepare`, `upgrade`, and `rollback` are accepted placeholders in
+the current source. They do not perform the named lifecycle operation.
+
+Full cleanup preserves the current project output directory but removes every
+entry inside it, including timestamped mappings, the latest-mapping symbolic
+link, discovery reports, and the status file. It also removes
+`discovery_credentials.yml` and `.discovery_credentials_key` by default. Pass
+`-e cleanup_credentials=false` with the `cleanup` tag to preserve both
+credential artifacts. Discovery logs and all other input files are preserved.
+
+Copy any mapping required by Orchestrator to the Orchestrator input project
+directory before cleanup. See [Clean up Discovery
+data](../../HowTo/discovery/index.md#clean-up-discovery-data) for the supported
+commands and warning.
 
 ## Related documentation
 

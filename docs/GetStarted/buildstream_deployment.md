@@ -376,8 +376,8 @@ pipeline results.
 - [Clean Up Pipeline Resources](../Operations/build_stream/cleanup_operations.md)
   with the manual/API-only cleanup pipeline. It is never selected by a catalog
   or mapping file change.
-- [Initialize Telemetry](../HowTo/build_stream/initialize_telemetry.md) after a
-  service Kubernetes cluster is available.
+- [Deploy Telemetry](../HowTo/Telemetry/deploy_telemetry.md) after a service
+  Kubernetes cluster is available.
 
 ## Troubleshooting
 

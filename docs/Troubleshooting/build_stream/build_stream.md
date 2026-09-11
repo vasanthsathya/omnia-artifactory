@@ -53,7 +53,13 @@ Issues related to BuildStreaM pipeline execution, GitLab integration, catalog va
         - Either run the pipeline from the already registered client
         - Or perform the `cleanup_gitlab` and reconfigure GitLab using the playbook
 
-    2. For other non-successful API responses, on the OIM, check the authentication logs at `/<nfs-dir>/omnia/log/build_stream/auth.log` for detailed error information.
+    2. For other non-successful API responses, check the authentication log
+       on the OIM at
+       `<OMNIA_DATA_PATH>/log/build_stream/auth.log`.
+
+       `OMNIA_DATA_PATH` is configurable and defaults to `/opt/omnia`. With
+       the default value, the log is located at
+       `/opt/omnia/log/build_stream/auth.log`.
 
 ## Token Generation Stage Failing
 
@@ -68,7 +74,8 @@ Issues related to BuildStreaM pipeline execution, GitLab integration, catalog va
 
 ??? note "Resolution"
 
-    On the OIM, check the authentication logs at `/<nfs-dir>/omnia/log/build_stream/auth.log` for detailed error information.
+    On the OIM, check the authentication log at
+    `<OMNIA_DATA_PATH>/log/build_stream/auth.log`.
 
 ## Parse Catalog Stage Failing
 
@@ -85,7 +92,8 @@ Issues related to BuildStreaM pipeline execution, GitLab integration, catalog va
 
     - Ensure the JSON is aligned with the schema as shown in the reference examples available at:
         - [https://github.com/dell/omnia/tree/pub/build_stream/examples/catalog](https://github.com/dell/omnia/tree/pub/build_stream/examples/catalog)
-    - If the issue persists, on the OIM, check the job-specific logs at `/<nfs-dir>/omnia/log/build_stream/<job-id>/<jobid>.log`
+    - If the issue persists, check the job-specific log on the OIM at
+      `<OMNIA_DATA_PATH>/log/build_stream/<job-id>/<job-id>.log`.
 
 ## Create Local Repo Stage Failing
 
@@ -96,7 +104,8 @@ Issues related to BuildStreaM pipeline execution, GitLab integration, catalog va
 ??? note "Cause"
 
     - Playbook execution failed
-    - Catalog or `repo_manager_config.yml` configuration issues
+    - Catalog, `repo_manager_config.yml`, or
+      `repo_manager_endpoint_config.yml` configuration issues
 
 ??? note "Resolution"
 
@@ -117,7 +126,8 @@ Issues related to BuildStreaM pipeline execution, GitLab integration, catalog va
         ```
 
     2. Verify the selected catalog and the project-scoped
-       `repo_manager_config.yml` settings.
+       `repo_manager_config.yml` and `repo_manager_endpoint_config.yml`
+       settings.
 
     3. After fixing the configuration issues, re-run the pipeline.
 
@@ -182,8 +192,6 @@ Issues related to BuildStreaM pipeline execution, GitLab integration, catalog va
     - [Execute Deploy Pipeline](../../HowTo/build_stream/execute_deploy_pipeline.md) -- Deploy pipeline operations
     - [Retry Pipelines](../../Operations/build_stream/retry_pipelines.md) -- Retry failed pipeline operations
     - [Update Catalog](../../Operations/build_stream/update_catalog.md) -- Catalog configuration
-
-
 
 
 

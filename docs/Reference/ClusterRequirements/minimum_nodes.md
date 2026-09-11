@@ -30,6 +30,13 @@ This page lists the minimum number of servers required for each Omnia deployment
 
 **Total: 9 nodes**
 
+!!! note
+
+    The Service Kubernetes Node quantity in the Slurm and Kubernetes tables is
+    the minimum for a deployment with one Scalable Unit. For a deployment with
+    N Scalable Units, provide N dedicated `service_kube_node_x86_64` servers,
+    with one server in each Scalable Unit.
+
 ## Slurm -- x86_64
 
 | Role | Architecture | Quantity |
@@ -76,7 +83,6 @@ This page lists the minimum number of servers required for each Omnia deployment
     - [Disk Space](disk_space.md) -- Disk and memory requirements per node role.
     - [Ports](../../SecurityConfigurationGuide/network_security.md#firewall-settings) -- Network ports required per role.
     - [HA Config](../Configuration/high_availability_config.md) -- Kubernetes HA settings.
-
 
 
 

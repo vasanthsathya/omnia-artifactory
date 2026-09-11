@@ -239,7 +239,7 @@ nav:
       - HowTo/build_stream/index.md
       - Execute Build Pipeline: HowTo/build_stream/execute_build_pipeline.md
       - Execute Deploy Pipeline: HowTo/build_stream/execute_deploy_pipeline.md
-      - Initialize Telemetry: HowTo/build_stream/initialize_telemetry.md
+      - Execute CleanUp Pipeline: Operations/build_stream/cleanup_operations.md
     - UTILS:
       - HowTo/utils/index.md
       - Install OS Unattended: HowTo/utils/install_os_unattended.md
@@ -329,7 +329,6 @@ nav:
     - BuildStreaM:
       - Add Nodes through BuildStreaM: Operations/build_stream/add_nodes.md
       - Update the Catalog: Operations/build_stream/update_catalog.md
-      - Clean Up Image Groups: Operations/build_stream/cleanup_operations.md
       - Retry Pipelines: Operations/build_stream/retry_pipelines.md
     - Diagnostics:
       - Log Management: Operations/log_management.md

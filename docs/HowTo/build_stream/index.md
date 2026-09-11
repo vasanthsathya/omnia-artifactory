@@ -14,13 +14,6 @@ The parent `.gitlab-ci.yml` routes requests to one of three child pipelines. A c
 ## Prerequisites
 
 - Run BuildStreaM on an OIM host that meets the source requirements: RHEL or Rocky Linux 10.x, Python 3.12 or later, Ansible Core 2.20 or later, and Podman 5.0 or later.
-- Prepare the `repo_manager` and `image_build_manager` base services. The BuildStreaM precheck requires the `pulp`, `minio-server`, and `registry` containers to be running. It also requires these credential files for the active project:
-
-    ```text
-    <OMNIA_DATA_PATH>/repo_manager/input/<OMNIA_PROJECT_NAME>/repo_manager_config_credentials.yml
-    <OMNIA_DATA_PATH>/image_build_manager/input/<OMNIA_PROJECT_NAME>/image_build_credentials.yml
-    ```
-
 - Ensure the GitLab host can ping `build_stream_host_ip` and that the OIM can reach the GitLab host.
 - Ensure the selected GitLab HTTPS port is unused. The role enables `firewalld` and opens the configured HTTPS port and TCP port 22.
 - Allow the GitLab host to reach `packages.gitlab.com`, `docker.io`, and `registry.gitlab.com`. These locations provide GitLab CE and the runner, helper, and default CI images used by the deployment.
@@ -98,29 +91,29 @@ Configure the repo-manager and image-build-manager inputs before starting an ima
 
 ## Procedure
 
-1. From the Omnia repository root, prepare and activate the shared Omnia virtual environment:
+1. Configure the staged input files for the three base domains. The files are
+   located under
+   `$OMNIA_DATA_PATH/<domain>/input/$OMNIA_PROJECT_NAME/`.
+
+    | Domain | Configuration references |
+    |---|---|
+    | Repo Manager | [Repository configuration](../../Reference/Configuration/repo_manager_config.md) and [Pulp endpoint configuration](../../Reference/Configuration/repo_manager_endpoint_config.md) |
+    | Image Build Manager | [Image-build configuration](../../Reference/Configuration/image_build_manager_config.md) and, when `functional_groups_source: config` is selected, [package groups](../../Reference/Configuration/package_groups.md) |
+    | Orchestrator | Review the complete [Orchestrator input summary](../orchestrator/index.md#input-summary) and configure the files required for the selected deployment. |
+
+2. From the Main source directory, prepare the base infrastructure:
 
     ```bash title="Run on: OIM host"
-    ./src/main/omnia.sh --setup-venv
-    source /opt/omnia/venv/bin/activate
+    cd <OMNIA_SOURCE_PATH>/src/main
+    ./omnia.sh --prepare-base
     ```
 
-2. Initialize the BuildStreaM runtime directory. The current entry playbook uses `project_default`, so set that project explicitly:
+    The command validates, collects credentials for, and prepares Repo Manager,
+    Image Build Manager, and Orchestrator in dependency order. It stops if any
+    domain or phase fails. For command behavior, options, and verification, see
+    [Prepare base infrastructure](../main/prepare_base.md).
 
-    ```bash title="Run on: OIM host"
-    export OMNIA_DATA_PATH=/opt/omnia
-    export OMNIA_PROJECT_NAME=project_default
-    cd src/build_stream
-    ./domain-init.sh
-    ```
-
-    The initialization script installs the module's Python and Ansible Galaxy dependencies, creates the runtime output and log directories, copies the BSM application to `/opt/omnia/build_stream`, and stages `build_stream_config.yml` in the project input directory.
-
-    !!! caution
-
-        If staged files already exist, `domain-init.sh` asks before overwriting them. Review and preserve customer-specific values before accepting the overwrite. Use `--force` only when replacing those files is intentional.
-
-3. Edit the staged consolidated configuration:
+3. Edit the staged BuildStreaM configuration:
 
     ```bash title="Run on: OIM host"
     vi /opt/omnia/build_stream/input/project_default/build_stream_config.yml
@@ -128,39 +121,19 @@ Configure the repo-manager and image-build-manager inputs before starting an ima
 
     At minimum, set `enable_build_stream: true`, `build_stream_host_ip`, and `gitlab_host`. Confirm that `build_stream_port` and `gitlab_https_port` are available.
 
-4. Change to the BuildStreaM playbook directory and run the prerequisite check:
+4. Deploy the complete BuildStreaM stack from the Main source directory:
 
     ```bash title="Run on: OIM host"
-    cd playbooks
-    ansible-playbook build_stream.yml --tags precheck
+    cd <OMNIA_SOURCE_PATH>/src/main
+    ./omnia.sh --run build_stream
     ```
 
-    If this check reports missing base containers or credential files, complete the base preparation requested by the playbook before continuing.
+    Enter the six BuildStreaM credentials listed in the input contract when
+    prompted. The default BuildStreaM flow validates the configuration,
+    collects credentials, prepares PostgreSQL, the BSM API, and the playbook
+    watcher, and then configures GitLab and the CI/CD project.
 
-5. Validate the consolidated configuration without collecting credentials or changing the deployment:
-
-    ```bash title="Run on: OIM host"
-    ansible-playbook build_stream.yml --tags validate
-    ```
-
-6. Deploy the complete BuildStreaM stack:
-
-    ```bash title="Run on: OIM host"
-    ansible-playbook build_stream.yml --tags build
-    ```
-
-    Enter the six BuildStreaM credentials listed in the input contract when prompted. Existing non-empty values in the encrypted credential file are reused and are not prompted again.
-
-    The `build` tag performs both phases in order:
-
-    1. `prepare` deploys PostgreSQL, the BSM API, and the playbook watcher on the OIM, then writes `build_stream_status.yml`.
-    2. `execute` installs GitLab CE, creates the project and trigger, configures the BSM API project variables, pushes the CI/CD files and available module inputs, and deploys an online project runner.
-
-    !!! note
-
-        Run one BuildStreaM tag at a time. If PostgreSQL, BSM, and the watcher are already prepared, `ansible-playbook build_stream.yml --tags execute` runs only the GitLab phase. That phase verifies all three OIM services and the BSM certificate before changing the GitLab host.
-
-7. Retrieve `/root/gitlab-certs/ca.crt` from the GitLab host and import it into the client browser trust store if the browser must trust the self-signed Omnia CA.
+5. Retrieve `/root/gitlab-certs/ca.crt` from the GitLab host and import it into the client browser trust store if the browser must trust the self-signed Omnia CA.
 
 ## Verification
 

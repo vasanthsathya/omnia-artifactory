@@ -41,15 +41,28 @@ Orchestrator input directory.
 
 - Complete the main setup from `src/main` by running
   `./omnia.sh --setup-venv`.
-- Ensure that OME is reachable from the OIM over TCP port 443.
-- Ensure that OME already manages the target servers as device type `1000`
-  and reports a service tag for each target.
+- Ensure that OME is installed, powered on, and reachable from the OIM over
+  HTTPS on TCP port 443.
+- Configure network connectivity on every target server's BMC/iDRAC interface,
+  and complete device discovery in OME. OME must manage each target as device
+  type `1000` and report its service tag and management inventory.
+- Review the [NIC MAC address selection
+  priorities](discover_nodes.md#nic-mac-address-selection), and confirm that OME
+  presents the intended admin/PXE and InfiniBand interfaces in the expected
+  order and link state.
 - Configure the Discovery-owned `discovery_config.yml` and
   `network_spec.yml` files.
 - Plan the iDRAC hostnames and exact, case-sensitive OME static-group names.
   See [Plan iDRAC hostnames](discover_nodes.md#plan-idrac-hostnames) and
   [Plan OME static groups](discover_nodes.md#plan-ome-static-groups).
-- Make OME credentials available through the Discovery credential workflow.
+- For a deployment with N Scalable Units, plan N dedicated
+  `service_kube_node_x86_64` servers, with one server in each Scalable Unit.
+  See [Plan Scalable Unit service
+  nodes](discover_nodes.md#plan-scalable-unit-service-nodes).
+- Make credentials for an OME administrator, or an account with equivalent
+  inventory-read permissions, available through the Discovery credential
+  workflow. See [Network connectivity
+  requirements](discover_nodes.md#network-connectivity-requirements).
 
 ## Run Discovery
 
@@ -62,7 +75,10 @@ cd src/main
 ```
 
 The untagged command runs setup, configuration validation, credential handling,
-and OME discovery. Use one tag at a time.
+and OME discovery. See [Expected completion
+output](discover_nodes.md#expected-completion-output) for the representative
+success message and generated artifact paths. Use one tag at a time, except for
+the supported `cleanup,cleanup_credentials` combination.
 
 | Tag | Current behavior | Credentials |
 |-----|------------------|-------------|
@@ -73,13 +89,47 @@ and OME discovery. Use one tag at a time.
 | `discovery` | Alias of `execute`. | Created or loaded |
 | `precheck` | Reserved placeholder; no Discovery precheck is implemented. | Skipped |
 | `prepare` | Reserved placeholder; no Discovery preparation flow is implemented. | Do not use |
-| `cleanup` | Reserved placeholder; it does not remove Discovery artifacts. | Skipped |
+| `cleanup` | Empties the current project's Discovery output directory but preserves the directory. | Removed by default |
+| `cleanup_credentials` | Removes only the Discovery credential file and Vault key. | Removed |
 | `upgrade` | Reserved placeholder; no Discovery upgrade flow is implemented. | Do not use |
 | `rollback` | Reserved placeholder; no Discovery rollback flow is implemented. | Do not use |
 
 Unsupported tags and conflicting combinations fail validation. Although some
 placeholder tags are accepted by the playbook, they do not perform an
 operational lifecycle action in the current release.
+
+### Clean up Discovery data
+
+Run cleanup through the main domain CLI:
+
+```bash title="Run on: OIM host"
+cd src/main
+./omnia.sh --run discovery --tags cleanup
+```
+
+Full cleanup removes every artifact from
+`$OMNIA_DATA_PATH/discovery/output/$OMNIA_PROJECT_NAME/` and leaves the empty
+output directory in place. It also removes `discovery_credentials.yml` and
+`.discovery_credentials_key` by default. All other Discovery input files and
+Discovery log files are preserved.
+
+!!! warning
+
+    Copy any mapping required by Orchestrator to the Orchestrator input project
+    directory before running full Discovery cleanup.
+
+Preserve the credential file and Vault key while removing Discovery outputs:
+
+```bash title="Run on: OIM host"
+./omnia.sh --run discovery --tags cleanup -e cleanup_credentials=false
+```
+
+Remove only the credential file and Vault key without changing Discovery
+outputs:
+
+```bash title="Run on: OIM host"
+./omnia.sh --run discovery --tags cleanup_credentials
+```
 
 ## Execution flow
 
@@ -103,14 +153,30 @@ Discovery writes the following files to
 | `bmc_discovery_report_<timestamp>.csv` | BMC, Ethernet, and InfiniBand NIC-status report. |
 | `discovery_status.yml` | OME execution result, mapping path, discovered-server count, timestamp, and failure details when applicable. |
 
+The BMC discovery report is a read-only, point-in-time inventory for checking
+BMC details and OME-reported Ethernet and InfiniBand link states before
+provisioning. Its timestamp matches the mapping created by the same Discovery
+run. See [Review the BMC discovery
+report](discover_nodes.md#bmc-discovery-report) for the eight report columns,
+sample output, status interpretation, pre-provisioning checks, troubleshooting,
+and comparison with the PXE mapping.
+
 The mapping contains the following columns:
 
 ```text
 FUNCTIONAL_GROUP_NAME,GROUP_NAME,SERVICE_TAG,PARENT_SERVICE_TAG,HOSTNAME,ADMIN_MAC,ADMIN_IP,BMC_MAC,BMC_IP,IB_NIC_NAME,IB_IP
 ```
 
-Review all generated values before copying the stable mapping to the
-Orchestrator-owned input path:
+View the latest generated mapping on the OIM:
+
+```bash title="Run on: OIM host"
+cat /opt/omnia/discovery/output/project_default/bmc_pxe_mapping_file.csv
+```
+
+Complete the [server attribute verification
+checklist](discover_nodes.md#verification), including
+`FUNCTIONAL_GROUP_NAME`, `ADMIN_MAC`, `BMC_IP`, and `HOSTNAME`, before copying
+the stable mapping to the Orchestrator-owned input path:
 
 ```bash title="Run on: OIM host"
 cp /opt/omnia/discovery/output/project_default/bmc_pxe_mapping_file.csv \
@@ -123,6 +189,12 @@ for the complete input and output contract.
 ## Related guides
 
 - [Discover nodes using OME](discover_nodes.md)
+- [Understand NIC MAC address selection](discover_nodes.md#nic-mac-address-selection)
+- [Review the BMC discovery report](discover_nodes.md#bmc-discovery-report)
+- [Verify the generated mapping](discover_nodes.md#verification)
 - [Create a mapping file](create_mapping_file.md)
 - [Provision nodes](../orchestrator/provision_nodes.md)
-- [Discovery troubleshooting](../../Troubleshooting/discovery/discovery.md)
+- [Troubleshoot OME connectivity](discover_nodes.md#ome-is-unreachable)
+- [Troubleshoot Ethernet NIC selection](discover_nodes.md#the-admin-mac-address-is-unexpected-or-empty)
+- [Troubleshoot iDRAC hostnames and group values](discover_nodes.md#group-names-or-parent-service-tags-are-incorrect)
+- [Additional Discovery issues](../../Troubleshooting/discovery/discovery.md)
