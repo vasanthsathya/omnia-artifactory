@@ -104,8 +104,8 @@ not build the Slurm, LDMS, or VAST RPMs. For configuration details, see
 
 6. Monitor the pipeline progress.
 
-    ![BuildStreaM Pipeline Execution](../../assets/images/buildstream-buid-success.png)
-
+    ![BuildStreaM Pipeline Execution](../../assets/images/buildstream-build-trigger.png)
+    
 ### Trigger Build Pipeline Manually
 
 1. Navigate to **Build** → **Pipelines**.
