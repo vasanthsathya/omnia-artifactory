@@ -161,13 +161,13 @@
       });
       add('connector', 'cs4', {});
 
-      add('step', 'ss-img', { title: 'Build Diskless Images', desc: '<code>./omnia.sh --run image_build_manager</code>', details: { href: '../HowTo/image_build_manager/build_images.html', text: 'Learn more: Build OS images >>' } });
-      add('connector', 'cs3', {});
-
       if (S.aarch64 === 'yes') {
         add('step', 'ss-rhel', { title: 'Install RHEL on an aarch64 Node', desc: '<code>./omnia.sh --run utils --tags install_os</code>', details: { href: '../HowTo/utils/install_os_unattended.html', text: 'Learn more: Install RHEL >>' } });
         add('connector', 'cs5', {});
       }
+
+      add('step', 'ss-img', { title: 'Build Diskless Images', desc: '<code>./omnia.sh --run image_build_manager</code>', details: { href: '../HowTo/image_build_manager/build_images.html', text: 'Learn more: Build OS images >>' } });
+      add('connector', 'cs3', {});
 
       add('step', 'ss-prov', { title: 'Provision and PXE Boot Nodes', desc: '<code>./omnia.sh --run orchestrator</code>', details: { href: '../HowTo/orchestrator/provision_nodes.html', text: 'Learn more: Provision nodes >>' } });
     }
@@ -180,13 +180,13 @@
       });
       add('connector', 'cb1', {});
 
+      add('step', 'sb-oim', { title: 'Deploy BuildStreaM and Configure GitLab', desc: '<code>./omnia.sh --run build_stream</code>', details: { href: '../HowTo/build_stream/index.html', text: 'Learn more: Deploy BuildStreaM >>' } });
+      add('connector', 'cb3', {});
+
       if (S.aarch64 === 'yes') {
         add('step', 'sb-rhel', { title: 'Install RHEL10 on aarch64 Node', desc: '<code>./omnia.sh --run utils --tags install_os</code>', details: { href: '../HowTo/utils/install_os_unattended.html', text: 'Learn more: Install RHEL >>' } });
         add('connector', 'cb2', {});
       }
-
-      add('step', 'sb-oim', { title: 'Deploy BuildStreaM and Configure GitLab', desc: '<code>./omnia.sh --run build_stream</code>', details: { href: '../HowTo/build_stream/index.html', text: 'Learn more: Deploy BuildStreaM >>' } });
-      add('connector', 'cb3', {});
 
       add('step', 'sb-cat', { title: 'Update Catalog', desc: 'GitLab', details: { href: '../HowTo/build_stream/execute_build_pipeline.html', text: 'Learn more: Update catalog >>' } });
       add('connector', 'cb5', {});
@@ -209,7 +209,7 @@
       add('connector', 'cf2', {});
       add('step', 's-telem', {
         title: 'Enable Telemetry',
-        desc: '<code>telemetry.yml</code>',
+        desc: '<code>./omnia.sh --run telemetry</code>',
         details: { href: '../HowTo/Telemetry/deploy_telemetry.html', text: 'Learn more: Deploy telemetry >>' }
       });
     }
