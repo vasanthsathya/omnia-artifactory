@@ -33,7 +33,7 @@ This section outlines the key requirements for Slurm used by Omnia to deploy HPC
 
 - If the package names in the repository differ from the selected catalog,
   update the catalog so its Slurm package names match the available RPMs. See
-  [Add an RPM Repository](../../HowTo/repo_manager/adding_additional_repositories.md).
+  [Add an RPM Repository and Packages](../../HowTo/repo_manager/adding_additional_repositories.md).
 
 ## HPC Benchmark Image Layer
 
@@ -131,7 +131,6 @@ running kernel. Nodes without applicable GPU hardware skip the operation.
 
     - [Set Up Slurm](../../HowTo/orchestrator/deploy_slurm.md) -- For detailed information on setting up the Slurm cluster.
     - [Slurm Configuration](../Configuration/omnia_config.md#slurm-configuration-parameters) -- For detailed information on Slurm configuration parameters.
-
 
 
 

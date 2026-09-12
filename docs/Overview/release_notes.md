@@ -55,7 +55,7 @@ requirements, see the
 | Feature | Description |
 | --- | --- |
 | **BuildStreaM: Catalog-Driven Build Automation** | Omnia BuildStreaM provides a comprehensive automation solution for managing infrastructure build workflows. It uses a catalog-driven approach where you define your build requirements in a structured catalog file, and BuildStreaM executes automated pipelines to create and deploy images according to your specifications. For more details, see [BuildStreaM Documentation](../HowTo/build_stream/index.md). |
-| **Support for Installation of Additional Packages** | Enables the installation of additional packages on the cluster nodes, allowing to extend cluster functionality with custom software and tools. For more details, see [Configure Catalog Content and Add Packages](../HowTo/repo_manager/adding_additional_packages.md). |
+| **Support for Installation of Additional Packages** | Enables the installation of additional packages on the cluster nodes, allowing to extend cluster functionality with custom software and tools. For more details, see [Configure Catalog Content](../HowTo/repo_manager/adding_additional_packages.md). |
 | **Add and Remove Slurm Compute Nodes** | Provides the ability to add and remove Slurm compute nodes from the cluster, allowing for dynamic scaling of the cluster. See [Add Nodes](../Operations/add_nodes.md) and [Remove Slurm Compute Nodes](../Operations/remove_slurm_nodes.md). |
 | **Support for Apptainer** | Run apptainer pull to store the SIF container image on the cluster's NFS-mounted shared storage. This ensures uniform access across all compute nodes, enabling them to run jobs from the same SIF file. For more details, see [Use Apptainer](../HowTo/orchestrator/../orchestrator/use_apptainer.md). |
 | **Telemetry Collection from OME and SFM** | Enables collection of telemetry data from OpenManage Enterprise (OME) and Smart Fabric Manager (SFM), providing insights into cluster health, performance, and resource utilization. For more details, see [Deploy Telemetry](../HowTo/Telemetry/deploy_telemetry.md). |
@@ -77,7 +77,6 @@ requirements, see the
 | **Security Enhancements** | Credentials are now encrypted using industry-standard algorithms (for example, AES-256), improving compliance with security best practices and reducing the risk of data exposure. For more details, see [Product and Subsystem Security](../SecurityConfigurationGuide/product_subsystem_security.md). |
 | **Platform Support** | Supports `x86_64` and `aarch64` architectures, enabling deployment on both traditional and ARM-based HPC nodes for improved flexibility and energy efficiency. For more details, see [Software Requirements](../Reference/../Reference/../Reference/ClusterRequirements/software_requirements.md). |
 | **Input Template and Validator** | Provides predefined configuration templates and early input validation to reduce configuration errors and accelerate HPC cluster provisioning. This improves deployment reliability and overall user experience. For current task-specific procedures, see the [module how-to guides](../HowTo/index.md). |
-
 
 
 

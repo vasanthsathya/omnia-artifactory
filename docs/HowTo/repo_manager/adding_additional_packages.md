@@ -1,4 +1,4 @@
-# Configure Catalog Content and Add Packages
+# Configure Catalog Content
 
 ## Overview
 
@@ -153,7 +153,7 @@ Repository names may be defined directly under the architecture or inside its
 `user_repos` or `additional_repos` section. Repository Manager resolves those
 sections as one lookup map while preserving their runtime behavior. For the
 detailed repository procedure, see
-[Add an RPM Repository](adding_additional_repositories.md).
+[Add an RPM Repository and Packages](adding_additional_repositories.md).
 
 ## Verification
 

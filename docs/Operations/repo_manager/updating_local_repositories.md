@@ -96,7 +96,7 @@ build.
 - [Build Cluster Images](../../HowTo/image_build_manager/build_images.md).
 - [Resynchronize Local Repositories](local_repository_resync.md) when the goal
   is to check existing RPM remotes for upstream changes.
-- [Configure Catalog Content and Add Packages](../../HowTo/repo_manager/adding_additional_packages.md).
+- [Configure Catalog Content](../../HowTo/repo_manager/adding_additional_packages.md).
 
 ## Troubleshooting
 

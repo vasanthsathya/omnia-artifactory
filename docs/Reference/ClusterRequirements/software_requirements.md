@@ -45,7 +45,7 @@ This section outlines the key software and repository requirements for the compo
     Omnia consumes a reachable RPM repository; it does not build or host the
     Slurm RPMs. Set the repository URL in the matching `user_repos` entry for
     each required architecture. See
-    [Add an RPM Repository](../../HowTo/repo_manager/adding_additional_repositories.md).
+    [Add an RPM Repository and Packages](../../HowTo/repo_manager/adding_additional_repositories.md).
 
 ## Lightweight Directory Access Protocol (LDAP)
 
@@ -100,7 +100,6 @@ This section outlines the key software and repository requirements for the compo
 !!! info
 
     - [Installed Software](../SupportMatrix/installed_software.md) -- Refer to this document for the list of software installed in OMNIA.
-
 
 
 

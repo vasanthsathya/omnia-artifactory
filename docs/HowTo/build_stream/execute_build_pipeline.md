@@ -67,7 +67,7 @@ Configure the Pulp service endpoint in
 Each custom repository must expose `repodata/repomd.xml` and be reachable from
 the OIM. Repo Manager synchronizes and publishes these repositories; it does
 not build the Slurm, LDMS, or VAST RPMs. For configuration details, see
-[Add an RPM Repository](../repo_manager/adding_additional_repositories.md) and
+[Add an RPM Repository and Packages](../repo_manager/adding_additional_repositories.md) and
 [Software Requirements](../../Reference/ClusterRequirements/software_requirements.md).
 
 ## Procedure
@@ -171,7 +171,6 @@ After the pipeline completes:
   `repo_manager_endpoint_config.yml`.
 - **Build-Image stage failing**: Ensure the catalog has valid functional groups.
 - For additional issues, see [BuildStreaM Troubleshooting](../../Troubleshooting/build_stream/build_stream.md).
-
 
 
 

@@ -1,4 +1,4 @@
-# Add an RPM Repository
+# Add an RPM Repository and Packages
 
 ## Overview
 
@@ -66,7 +66,7 @@ values must match.
 
     Also add the package key to a group that is reachable from the intended
     functional layer. See
-    [Configure Catalog Content and Add Packages](adding_additional_packages.md).
+    [Configure Catalog Content](adding_additional_packages.md).
 
 3. Stage the updated YAML input:
 

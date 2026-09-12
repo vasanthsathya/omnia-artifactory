@@ -131,7 +131,7 @@ apptainer pull \
 
 ## Next steps
 
-- [Configure Catalog Content and Add Packages](../repo_manager/adding_additional_packages.md)
+- [Configure Catalog Content](../repo_manager/adding_additional_packages.md)
   -- Add software or container content to the synchronized catalog.
 
 ## Troubleshooting
@@ -140,7 +140,6 @@ apptainer pull \
   the `apptainer` package and that Repo Manager, Image Build Manager, and
   Orchestrator provisioning completed successfully.
 - **Container image pull fails**: Confirm network connectivity and that the container registry is accessible from the compute node.
-
 
 
 

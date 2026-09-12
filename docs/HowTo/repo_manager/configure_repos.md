@@ -23,6 +23,8 @@ and `reponame`; an image source is matched by `registry`.
   reference exactly one group with `type: "base_os"`, and every group and
   package reference must resolve.
 - Ensure all selected source URLs are reachable from the OIM.
+- [CRI-O Repository URL in `local_repo_config.yml` is unreachable from OIM](../../Troubleshooting/repo_manager/repo_manager.md#package-download-failure-due-to-slow-storage).
+- [EPEL Repository Unavailable/Unstable/Too Slow](../../Troubleshooting/repo_manager/repo_manager.md#epel-repository-unavailableunstabletoo-slow).
 - Have credentials available for the Pulp administrator and for any private
   registries that use basic authentication. Docker Hub credentials are
   optional for anonymous public pulls.

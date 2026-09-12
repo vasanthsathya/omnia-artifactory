@@ -78,7 +78,7 @@ updates the existing distribution without changing its URL.
 - [Build Cluster Images](../../HowTo/image_build_manager/build_images.md).
 - [Update Local Repositories](updating_local_repositories.md) when the catalog,
   rather than only the upstream RPM content, changed.
-- [Add an RPM Repository](../../HowTo/repo_manager/adding_additional_repositories.md).
+- [Add an RPM Repository and Packages](../../HowTo/repo_manager/adding_additional_repositories.md).
 
 ## Troubleshooting
 

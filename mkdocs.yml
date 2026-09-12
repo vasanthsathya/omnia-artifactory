@@ -179,8 +179,8 @@ nav:
     - REPOSITORY MANAGER:
       - HowTo/repo_manager/index.md
       - Create Local Repositories: HowTo/repo_manager/configure_repos.md
-      - Configure Catalog Content and Add Packages: HowTo/repo_manager/adding_additional_packages.md
-      - Add an RPM Repository: HowTo/repo_manager/adding_additional_repositories.md
+      - Configure Catalog Content: HowTo/repo_manager/adding_additional_packages.md
+      - Add an RPM Repository and Packages: HowTo/repo_manager/adding_additional_repositories.md
     - IMAGE BUILD MANAGER:
       - HowTo/image_build_manager/index.md
       - Build Images: HowTo/image_build_manager/build_images.md
@@ -243,6 +243,7 @@ nav:
     - UTILS:
       - HowTo/utils/index.md
       - Install OS Unattended: HowTo/utils/install_os_unattended.md
+      - Collect Cluster Logs: Operations/collect_cluster_logs.md
       - Back Up OIM Logs: HowTo/utils/backup_oim_logs.md
       - Clean Up Utils: HowTo/utils/cleanup_utils.md
   
@@ -332,7 +333,6 @@ nav:
       - Retry Pipelines: Operations/build_stream/retry_pipelines.md
     - Diagnostics:
       - Log Management: Operations/log_management.md
-      - Collect Cluster Logs: Operations/collect_cluster_logs.md
     - Slurm Maintenance:
       - Slurm Configuration Roles: Operations/slurm_configuration_roles.md
     - Best Practices Checklist: Operations/best_practices_checklist.md
