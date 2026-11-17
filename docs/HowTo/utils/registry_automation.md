@@ -2,28 +2,28 @@
 
 ## Overview
 
-Use the Utils `oci_image_ingest` workflow to pull Open Container Initiative
-(OCI) boot images from a Harbor registry, convert them to squashfs boot
-artifacts, and publish them to S3 so that OpenCHAMI can boot nodes from them.
-The workflow runs on the Omnia Infrastructure Manager (OIM) and is an
-alternative to building images with Image Build Manager.
+Use the Utils `oci_image_ingest` workflow to pull OCI boot images from a Harbor
+registry, convert them to squashfs boot artifacts, and publish them to S3 so
+that OpenCHAMI can boot nodes from them. The workflow runs from the Omnia
+Infrastructure Manager (OIM) and is an alternative to building images with
+Image Build Manager.
 
-The Orchestrator does not read OCI images directly. It reads the
-`build_status.yml` manifest, which points to the kernel, initrd, and root
-filesystem objects in S3. See the
-[Image Build Manager Contract](../../Reference/domain_contracts/image_build_manager_contract.md)
-for the manifest structure.
+!!! warning "Draft - pending verification"
+
+    This page was drafted from Story ER-UTIL-001-documentation. The
+    `oci_image_ingest` implementation is not part of the reviewed source
+    revision. Every item marked **[VERIFY]** must be confirmed against the
+    implemented utility before this page is published.
 
 ## Prerequisites
 
 - Complete the [OIM setup](../main/setup_oim.md).
 - Initialize Utils with `./omnia.sh -i utils`.
-- A Harbor registry that is reachable from the OIM and holds the OCI boot
-  images.
-- The `regctl` and `s3cmd` clients and the `squashfs-tools` package installed
-  on the OIM.
+- A reachable Harbor registry that holds the OCI boot images. **[VERIFY]**
+- The `regctl` and `squashfs-tools` packages and the `s3cmd` client installed
+  on the OIM. **[VERIFY]**
 - S3 storage that is reachable from the OIM and from the OpenCHAMI boot
-  services.
+  services. **[VERIFY]**
 
 ## Configure the ingestion
 
@@ -34,17 +34,21 @@ $OMNIA_DATA_PATH/utils/input/$OMNIA_PROJECT_NAME/oci_image_ingest_config.yml
 ```
 
 Use this file to define the Harbor connection and the images to ingest.
+**[VERIFY]** The parameter names, types, defaults, and an annotated example
+must be taken from the implemented input schema; they are intentionally not
+listed here until the schema is available.
 
 ## Set up credentials
 
-Registry credentials are stored in:
+Registry and S3 credentials are stored in:
 
 ```text
 $OMNIA_DATA_PATH/utils/input/$OMNIA_PROJECT_NAME/oci_image_ingest_credentials.yml
 ```
 
 Encrypt this file with Ansible Vault. Do not store credentials in clear text
-and do not pass them on the command line.
+and do not pass them on the command line. **[VERIFY]** the credential keys and
+the encryption command against the implemented utility.
 
 ## Run the ingestion
 
@@ -64,17 +68,27 @@ and do not pass them on the command line.
     ansible-playbook utils.yml --tags oci_image_ingest
     ```
 
+When the credentials file is Vault-encrypted, supply the Vault password as
+required by your Omnia setup. **[VERIFY]**
+
 ## Verify the result
 
 After a successful run, confirm that the boot artifacts for each ingested image
-are present in the configured S3 bucket.
+are present in the configured S3 bucket. **[VERIFY]** the artifact names and
+layout.
 
 ## Use the ingested images
 
-The workflow creates a `build_status.yml` file in the Utils output folder. The
-Orchestrator reads `build_status.yml` from the directory set by
-`image_build_manager_output_path` in `orchestrator_config.yml`. Make the
-ingested images available to the Orchestrator in one of the following ways:
+The workflow creates a `build_status.yml` file in the Utils output folder:
+
+```text
+$OMNIA_DATA_PATH/utils/output/$OMNIA_PROJECT_NAME/build_status.yml
+```
+
+**[VERIFY]** the exact file path. The Orchestrator reads `build_status.yml`
+from the directory set by `image_build_manager_output_path` in
+`orchestrator_config.yml`. Make the ingested images available to the
+Orchestrator in one of the following ways:
 
 - Copy `build_status.yml` to the directory that
   `image_build_manager_output_path` points to.
@@ -92,8 +106,15 @@ ingested images available to the Orchestrator in one of the following ways:
   ingestion, not by both.
 - An Image Build Manager cleanup removes ingested releases. To recover, run
   the `oci_image_ingest` workflow again.
+- Full coexistence of Image Build Manager and OCI ingestion for the same
+  functional group is tracked as GH-5788.
 
 ## Troubleshooting
+
+!!! note
+
+    **[VERIFY]** Replace the entries below with the actual error messages
+    produced by the implemented utility.
 
 - **The registry cannot be reached**: Confirm DNS or IP connectivity, the
   Harbor address and port, and certificate trust from the OIM.
@@ -106,7 +127,8 @@ ingested images available to the Orchestrator in one of the following ways:
   free space at the S3 destination.
 - **Nodes do not boot the ingested image**: Confirm that `build_status.yml` is
   in the directory set by `image_build_manager_output_path` and that the image
-  belongs to a functional group that Image Build Manager does not also serve.
+  belongs to a functional group that is not also served by Image Build
+  Manager.
 - **Ingested images disappear after a cleanup**: An Image Build Manager cleanup
   removed them. Rerun `oci_image_ingest`.
 
