@@ -58,12 +58,13 @@ Run Utils workflows through the OIM domain launcher:
 | `slurm_config_backup` | Back up the active Slurm controller configuration with checksummed metadata. |
 | `slurm_config_cleanup` | Delete the active Slurm configuration after an optional backup and explicit confirmation. |
 | `slurm_config_rollback` | Restore a selected Slurm configuration backup and reconfigure the controller. |
-| `oci_image_ingest` | Ingest OCI boot images from Harbor and publish boot artifacts to S3. |
+| `oci_image_ingest` | Ingest OCI boot images from Harbor, publish the boot artifacts to S3, and write `build_status.yml` for the Orchestrator. |
 | `cleanup_logs` | Remove log-collection artifacts. |
 | `cleanup_install_os` | Remove temporary OS-installation artifacts and optionally reset credentials. |
+| `cleanup_oci_image_ingest` | Remove OCI image ingestion working data and stored registry credentials. |
 | `cleanup_backup_oim_logs` | Remove every OIM log-backup run directory from the resolved destination. |
 | `cleanup_slurm_config_backups` | Remove every Slurm configuration backup-run directory from the resolved destination. |
-| `cleanup` | Run all four cleanup playbooks, including OIM log-backup and Slurm configuration backup cleanup. |
+| `cleanup` | Run all five cleanup playbooks, including OCI image ingestion, OIM log-backup, and Slurm configuration backup cleanup. |
 
 !!! note
 
