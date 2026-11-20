@@ -151,6 +151,12 @@ mounts:
     functional_group_prefix: ["service_kube"]
 ```
 
+!!! important
+
+    The `rsize` and `wsize` values in `storage_config.yml` and in
+    `csi_powerscale_mount_options` in `omnia_config.yml` must match the NFS
+    transfer size configured on the PowerScale system.
+
 PowerScale CSI volumes are configured separately through
 `csi_powerscale_mount_options` in `omnia_config.yml`.
 

@@ -362,6 +362,10 @@ node.
         - If `rsize` is set, `wsize` must also be set, and the reverse. Each
           must be an integer greater than 0 and less than 1048576 (1 MiB).
           Input validation rejects other values.
+        - The `rsize` and `wsize` values must match the NFS transfer size
+          configured on the PowerScale system, and must be the same in
+          `omnia_config.yml` and `storage_config.yml`. A mismatch can cause
+          Input/output errors on PowerScale volumes.
         - The options apply when the driver is deployed. To change them after
           deployment, clean up the NFS share and redeploy the Orchestrator with
           the changed value. Restart existing pods so they remount their

@@ -76,6 +76,9 @@ on a bind-mount remount, where options such as `rsize` and `wsize` fail.
   parameter applies the default. RHEL 10.x clients can return Input/output
   errors on PowerScale volumes at the negotiated 1 MiB transfer size.
 - Set the value to `""` to use the NFS client defaults.
+- The `rsize` and `wsize` values must match the NFS transfer size configured on
+  the PowerScale system. A mismatch can cause Input/output errors on
+  PowerScale volumes.
 - If `rsize` is set, `wsize` must also be set, and the reverse. Each value must
   be an integer greater than 0 and less than 1048576 (1 MiB). Options cannot
   contain spaces.
